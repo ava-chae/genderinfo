@@ -1,0 +1,215 @@
+---
+title: "genderinfo_1"
+output: word_document
+date: "2023-04-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Initially condensing data to be under 25MB to upload to Github
+
+```{r}
+gender <- read.csv("genderinfo.csv", header = T)
+head(gender)
+
+dim(gender)
+
+gender <- gender[,!(names(gender) %in% c("source", "value_footnotes"))]
+
+write.csv(gender, "genderinfocondensed.csv", row.names=FALSE)
+
+
+```
+
+
+
+## Loading and cleaning condensed data from Github
+
+```{r}
+# read csv file from github to gendergf
+genderdf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/genderinfocondensed.csv")
+head(genderdf) 
+dim(genderdf)
+
+
+# cut dataframe to include only 9 category variables
+gendertrial <- subset(genderdf, genderdf$category %in% c("abortion_rate", "total_fertility_rate", "adult_literacy_rate", "womens_share_of_labour_force", "womens_share_of_tertiary_enrolment", "labour_force_participation_rate", "percent_ever_married_or_in_union_among_persons_aged_15_19", "singulate_mean_age_at_marriage", "contraceptive_prevalence_rate_any_method"))
+# only keep first four characters in year
+gendertrial$year <- substr(gendertrial$year, 0, 4)
+```
+
+
+
+```{r}
+
+# make abortion rate subset
+abortion_rate_df <- subset(gendertrial, gendertrial$category == 'abortion_rate', select = c('country_or_area', 'year','value'))
+colnames(abortion_rate_df)[which(names(abortion_rate_df) == "value")] <- "abortion_rate_per_1000_women"
+abortion_rate_df <- abortion_rate_df[complete.cases(abortion_rate_df), ]
+abortion_rate_df <- abortion_rate_df[order(abortion_rate_df$country_or_area, abortion_rate_df$year), ]
+abortion_rate_df <- abortion_rate_df[!duplicated(abortion_rate_df$country_or_area), ]
+abortion_rate_df <- abortion_rate_df[, -2]
+
+# make total fertility rate subset
+total_fertility_rate_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'year','value'))
+colnames(total_fertility_rate_df)[which(names(total_fertility_rate_df) == "value")] <- "total_fertility_rate_per_woman"
+total_fertility_rate_df <- total_fertility_rate_df[complete.cases(total_fertility_rate_df), ]
+total_fertility_rate_df <- total_fertility_rate_df[order(total_fertility_rate_df$country_or_area, total_fertility_rate_df$year), ]
+total_fertility_rate_df <- total_fertility_rate_df[!duplicated(total_fertility_rate_df$country_or_area), ]
+total_fertility_rate_df <- total_fertility_rate_df[, -2]
+
+# make adult literacy rate subset split by gender
+adult_literacy_rate_female_df <- subset(gendertrial, gendertrial$category == 'adult_literacy_rate' & gendertrial$subgroup == 'Female 15+ yr', select = c('country_or_area', 'year','value'))
+colnames(adult_literacy_rate_female_df)[which(names(adult_literacy_rate_female_df) == "value")] <- "adult_literacy_rate_female_percent"
+adult_literacy_rate_female_df <- adult_literacy_rate_female_df[complete.cases(adult_literacy_rate_female_df), ]
+adult_literacy_rate_female_df <- adult_literacy_rate_female_df[order(adult_literacy_rate_female_df$country_or_area, adult_literacy_rate_female_df$year), ]
+adult_literacy_rate_female_df <- adult_literacy_rate_female_df[!duplicated(adult_literacy_rate_female_df$country_or_area), ]
+adult_literacy_rate_female_df <- adult_literacy_rate_female_df[, -2]
+
+adult_literacy_rate_male_df <- subset(gendertrial, gendertrial$category == 'adult_literacy_rate' & gendertrial$subgroup == 'Male 15+ yr', select = c('country_or_area', 'year','value'))
+colnames(adult_literacy_rate_male_df)[which(names(adult_literacy_rate_male_df) == "value")] <- "adult_literacy_rate_male_percent"
+adult_literacy_rate_male_df <- adult_literacy_rate_male_df[complete.cases(adult_literacy_rate_male_df), ]
+adult_literacy_rate_male_df <- adult_literacy_rate_male_df[order(adult_literacy_rate_male_df$country_or_area, adult_literacy_rate_male_df$year), ]
+adult_literacy_rate_male_df <- adult_literacy_rate_male_df[!duplicated(adult_literacy_rate_male_df$country_or_area), ]
+adult_literacy_rate_male_df <- adult_literacy_rate_male_df[, -2]
+
+
+# make women's share of labour force subset
+womens_share_of_labour_force_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_labour_force', select = c('country_or_area', 'year','value'))
+colnames(womens_share_of_labour_force_df)[which(names(womens_share_of_labour_force_df) == "value")] <- "womens_share_of_labour_force_percent"
+womens_share_of_labour_force_df <- womens_share_of_labour_force_df[complete.cases(womens_share_of_labour_force_df), ]
+womens_share_of_labour_force_df <- womens_share_of_labour_force_df[order(womens_share_of_labour_force_df$country_or_area, womens_share_of_labour_force_df$year), ]
+womens_share_of_labour_force_df <- womens_share_of_labour_force_df[!duplicated(womens_share_of_labour_force_df$country_or_area), ]
+womens_share_of_labour_force_df <- womens_share_of_labour_force_df[, -2]
+
+# make women's share of tertiary enrollment subset
+womens_share_of_tertiary_enrolment_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_tertiary_enrolment', select = c('country_or_area', 'year','value'))
+colnames(womens_share_of_tertiary_enrolment_df)[which(names(womens_share_of_tertiary_enrolment_df) == "value")] <- "womens_share_of_tertiary_enrolment_percent"
+womens_share_of_tertiary_enrolment_df <- womens_share_of_tertiary_enrolment_df[complete.cases(womens_share_of_tertiary_enrolment_df), ]
+womens_share_of_tertiary_enrolment_df <- womens_share_of_tertiary_enrolment_df[order(womens_share_of_tertiary_enrolment_df$country_or_area, womens_share_of_tertiary_enrolment_df$year), ]
+womens_share_of_tertiary_enrolment_df <- womens_share_of_tertiary_enrolment_df[!duplicated(womens_share_of_tertiary_enrolment_df$country_or_area), ]
+womens_share_of_tertiary_enrolment_df <- womens_share_of_tertiary_enrolment_df[, -2]
+
+# make labor force participation rate subset split by gender
+labour_force_participation_rate_female_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Female 15+ yr', select = c('country_or_area', 'year','value'))
+colnames(labour_force_participation_rate_female_df)[which(names(labour_force_participation_rate_female_df) == "value")] <- "labour_force_participation_rate_female_percent"
+labour_force_participation_rate_female_df <- labour_force_participation_rate_female_df[complete.cases(labour_force_participation_rate_female_df), ]
+labour_force_participation_rate_female_df <- labour_force_participation_rate_female_df[order(labour_force_participation_rate_female_df$country_or_area, labour_force_participation_rate_female_df$year), ]
+labour_force_participation_rate_female_df <- labour_force_participation_rate_female_df[!duplicated(labour_force_participation_rate_female_df$country_or_area), ]
+labour_force_participation_rate_female_df <- labour_force_participation_rate_female_df[, -2]
+
+
+labour_force_participation_rate_male_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Male 15+ yr', select = c('country_or_area', 'year','value'))
+colnames(labour_force_participation_rate_male_df)[which(names(labour_force_participation_rate_male_df) == "value")] <- "labour_force_participation_rate_male_percent"
+labour_force_participation_rate_male_df <- labour_force_participation_rate_male_df[complete.cases(labour_force_participation_rate_male_df), ]
+labour_force_participation_rate_male_df <- labour_force_participation_rate_male_df[order(labour_force_participation_rate_male_df$country_or_area, labour_force_participation_rate_male_df$year), ]
+labour_force_participation_rate_male_df <- labour_force_participation_rate_male_df[!duplicated(labour_force_participation_rate_male_df$country_or_area), ]
+labour_force_participation_rate_male_df <- labour_force_participation_rate_male_df[, -2]
+
+
+# make percent ever married or in union among persons aged 15-19 subset split by gender
+percent_ever_married_female_df <- subset(gendertrial, gendertrial$category == 'percent_ever_married_or_in_union_among_persons_aged_15_19' & gendertrial$subgroup == 'Total Female 15-19 yr', select = c('country_or_area', 'year','value'))
+colnames(percent_ever_married_female_df)[which(names(percent_ever_married_female_df) == "value")] <- "percent_ever_married_female_aged_15_19"
+percent_ever_married_female_df <- percent_ever_married_female_df[complete.cases(percent_ever_married_female_df), ]
+percent_ever_married_female_df <- percent_ever_married_female_df[order(percent_ever_married_female_df$country_or_area, percent_ever_married_female_df$year), ]
+percent_ever_married_female_df <- percent_ever_married_female_df[!duplicated(percent_ever_married_female_df$country_or_area), ]
+percent_ever_married_female_df <- percent_ever_married_female_df[, -2]
+
+percent_ever_married_male_df <- subset(gendertrial, gendertrial$category == 'percent_ever_married_or_in_union_among_persons_aged_15_19' & gendertrial$subgroup == 'Total Male 15-19 yr', select = c('country_or_area', 'year','value'))
+colnames(percent_ever_married_male_df)[which(names(percent_ever_married_male_df) == "value")] <- "percent_ever_married_male_aged_15_19"
+percent_ever_married_male_df <- percent_ever_married_male_df[complete.cases(percent_ever_married_male_df), ]
+percent_ever_married_male_df <- percent_ever_married_male_df[order(percent_ever_married_male_df$country_or_area, percent_ever_married_male_df$year), ]
+percent_ever_married_male_df <- percent_ever_married_male_df[!duplicated(percent_ever_married_male_df$country_or_area), ]
+percent_ever_married_male_df <- percent_ever_married_male_df[, -2]
+
+# make singulate mean age at marriage subset split by gender
+singulate_mean_age_at_marriage_female_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Female', select = c('country_or_area', 'year','value'))
+colnames(singulate_mean_age_at_marriage_female_df)[which(names(singulate_mean_age_at_marriage_female_df) == "value")] <- "mean_age_at_marriage_female"
+singulate_mean_age_at_marriage_female_df <- singulate_mean_age_at_marriage_female_df[complete.cases(singulate_mean_age_at_marriage_female_df), ]
+singulate_mean_age_at_marriage_female_df <- singulate_mean_age_at_marriage_female_df[order(singulate_mean_age_at_marriage_female_df$country_or_area, singulate_mean_age_at_marriage_female_df$year), ]
+singulate_mean_age_at_marriage_female_df <- singulate_mean_age_at_marriage_female_df[!duplicated(singulate_mean_age_at_marriage_female_df$country_or_area), ]
+singulate_mean_age_at_marriage_female_df <- singulate_mean_age_at_marriage_female_df[, -2]
+
+singulate_mean_age_at_marriage_male_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Male', select = c('country_or_area', 'year','value'))
+colnames(singulate_mean_age_at_marriage_male_df)[which(names(singulate_mean_age_at_marriage_male_df) == "value")] <- "mean_age_at_marriage_male"
+singulate_mean_age_at_marriage_male_df <- singulate_mean_age_at_marriage_male_df[complete.cases(singulate_mean_age_at_marriage_male_df), ]
+singulate_mean_age_at_marriage_male_df <- singulate_mean_age_at_marriage_male_df[order(singulate_mean_age_at_marriage_male_df$country_or_area, singulate_mean_age_at_marriage_male_df$year), ]
+singulate_mean_age_at_marriage_male_df <- singulate_mean_age_at_marriage_male_df[!duplicated(singulate_mean_age_at_marriage_male_df$country_or_area), ]
+singulate_mean_age_at_marriage_male_df <- singulate_mean_age_at_marriage_male_df[, -2]
+
+# make contraceptive prevalence rate any method subset
+contraceptive_prevalence_rate_any_method_df <- subset(gendertrial, gendertrial$category == 'contraceptive_prevalence_rate_any_method', select = c('country_or_area', 'year','value'))
+colnames(contraceptive_prevalence_rate_any_method_df)[which(names(contraceptive_prevalence_rate_any_method_df) == "value")] <- "contraceptive_prevalence_rate_any_method_percent"
+contraceptive_prevalence_rate_any_method_df <- contraceptive_prevalence_rate_any_method_df[complete.cases(contraceptive_prevalence_rate_any_method_df), ]
+contraceptive_prevalence_rate_any_method_df <- contraceptive_prevalence_rate_any_method_df[order(contraceptive_prevalence_rate_any_method_df$country_or_area, contraceptive_prevalence_rate_any_method_df$year), ]
+contraceptive_prevalence_rate_any_method_df <- contraceptive_prevalence_rate_any_method_df[!duplicated(contraceptive_prevalence_rate_any_method_df$country_or_area), ]
+contraceptive_prevalence_rate_any_method_df <- contraceptive_prevalence_rate_any_method_df[, -2]
+
+```
+
+
+
+
+
+
+```{r}
+# all subsets merged
+allmerge = merge(labour_force_participation_rate_female_df, merge(labour_force_participation_rate_male_df, merge(percent_ever_married_female_df, merge(percent_ever_married_male_df, merge(singulate_mean_age_at_marriage_female_df, merge(singulate_mean_age_at_marriage_male_df, merge(contraceptive_prevalence_rate_any_method_df, merge(womens_share_of_tertiary_enrolment_df, merge(womens_share_of_labour_force_df, merge(adult_literacy_rate_male_df, merge(adult_literacy_rate_female_df, merge(abortion_rate_df, total_fertility_rate_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
+
+# only complete cases
+completemerge <- allmerge[complete.cases(allmerge),]
+colSums(is.na(allmerge))
+
+# all subsets merged except abortion rate
+allmerge1 = merge(labour_force_participation_rate_female_df, merge(labour_force_participation_rate_male_df, merge(percent_ever_married_female_df, merge(percent_ever_married_male_df, merge(singulate_mean_age_at_marriage_female_df, merge(singulate_mean_age_at_marriage_male_df, merge(contraceptive_prevalence_rate_any_method_df, merge(womens_share_of_tertiary_enrolment_df, merge(womens_share_of_labour_force_df, merge(adult_literacy_rate_male_df, merge(adult_literacy_rate_female_df, total_fertility_rate_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
+
+completemerge1 <- allmerge1[complete.cases(allmerge1),]
+dim(completemerge1)
+
+# all subsets merged except abortion rate and literacy rates
+allmerge2 = merge(labour_force_participation_rate_female_df, merge(labour_force_participation_rate_male_df, merge(percent_ever_married_female_df, merge(percent_ever_married_male_df, merge(singulate_mean_age_at_marriage_female_df, merge(singulate_mean_age_at_marriage_male_df, merge(contraceptive_prevalence_rate_any_method_df, merge(womens_share_of_tertiary_enrolment_df, merge(womens_share_of_labour_force_df, total_fertility_rate_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
+
+completemerge2 <- allmerge2[complete.cases(allmerge2),]
+dim(completemerge2)
+
+
+# variables
+# abortion_rate_df, total_fertility_rate_df, adult_literacy_rate_female_df, adult_literacy_rate_male_df, womens_share_of_labour_force_df, womens_share_of_tertiary_enrolment_df labour_force_participation_rate_female_df, labour_force_participation_rate_male_df, percent_ever_married_female_df, percent_ever_married_male_df, singulate_mean_age_at_marriage_female_df, singulate_mean_age_at_marriage_male_df, contraceptive_prevalence_rate_any_method_df
+
+
+
+```
+
+
+
+
+
+
+```{r}
+# exporting the three dataframes into csv files
+
+write.csv(completemerge, "completemerge.csv", row.names=FALSE)
+write.csv(completemerge1, "completemerge1.csv", row.names=FALSE)
+write.csv(completemerge2, "completemerge2.csv", row.names=FALSE)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
