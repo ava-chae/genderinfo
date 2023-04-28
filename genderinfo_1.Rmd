@@ -28,6 +28,10 @@ write.csv(gender, "genderinfocondensed.csv", row.names=FALSE)
 
 
 ```
+```{r}
+(subset(genderdf, genderdf$category == 'abortion_laws_by_grounds_on_which_abortion_is_permitted'))
+
+```
 
 
 
@@ -44,7 +48,14 @@ dim(genderdf)
 gendertrial <- subset(genderdf, genderdf$category %in% c("abortion_rate", "total_fertility_rate", "adult_literacy_rate", "womens_share_of_labour_force", "womens_share_of_tertiary_enrolment", "labour_force_participation_rate", "percent_ever_married_or_in_union_among_persons_aged_15_19", "singulate_mean_age_at_marriage", "contraceptive_prevalence_rate_any_method"))
 # only keep first four characters in year
 gendertrial$year <- substr(gendertrial$year, 0, 4)
+
+
+
+take out percent ever married
+
 ```
+
+
 
 
 
@@ -181,6 +192,13 @@ completemerge2 <- allmerge2[complete.cases(allmerge2),]
 dim(completemerge2)
 
 
+# all subsets merged except abortion rate and literacy rates and percent ever married
+allmerge3 = merge(labour_force_participation_rate_female_df, merge(labour_force_participation_rate_male_df, merge(singulate_mean_age_at_marriage_female_df, merge(singulate_mean_age_at_marriage_male_df, merge(contraceptive_prevalence_rate_any_method_df, merge(womens_share_of_tertiary_enrolment_df, merge(womens_share_of_labour_force_df, total_fertility_rate_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
+
+completemerge3 <- allmerge3[complete.cases(allmerge3),]
+dim(completemerge3)
+
+
 # variables
 # abortion_rate_df, total_fertility_rate_df, adult_literacy_rate_female_df, adult_literacy_rate_male_df, womens_share_of_labour_force_df, womens_share_of_tertiary_enrolment_df labour_force_participation_rate_female_df, labour_force_participation_rate_male_df, percent_ever_married_female_df, percent_ever_married_male_df, singulate_mean_age_at_marriage_female_df, singulate_mean_age_at_marriage_male_df, contraceptive_prevalence_rate_any_method_df
 
@@ -203,6 +221,30 @@ write.csv(completemerge2, "completemerge2.csv", row.names=FALSE)
 
 ```
 
+
+
+```{r}
+
+# read csv file from github to scraped data
+scrapeddf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/*UPDATED_scrapedmerge.csv")
+head(scrapeddf) 
+dim(scrapeddf)
+names(scrapeddf)
+colnames(scrapeddf)[1] = "country_or_area"
+
+
+names(completemerge3)
+
+finalmerge <- merge(completemerge3, scrapeddf, by = c("country_or_area"), all = T)
+head(finalmerge)
+
+finalmerge <- finalmerge[complete.cases(finalmerge),]
+dim(finalmerge)
+
+
+write.csv(finalmerge, "finalmerge.csv", row.names=FALSE)
+
+```
 
 
 
