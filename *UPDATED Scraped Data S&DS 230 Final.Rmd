@@ -36,12 +36,14 @@ country_parliament <- gsub(" 1", "", html_text(html_nodes(webpage3, 'tr~ tr+ tr 
 percent_parliament <- as.numeric(gsub("\\%", "", html_text(html_nodes(webpage3, 'tr~ tr+ tr td:nth-child(6)'))))
 parliament <- data.frame(row.names = country_parliament, percent_women_in_parliament = percent_parliament)
 
-#ratio of male to female gross national income per capita (USD PPP)
+#male vs. female gross national income per capita (USD PPP)
 url4 <- "https://en.wikipedia.org/wiki/List_of_sovereign_states_by_male_to_female_income_ratio"
 webpage4 <- read_html(url4)
-country_ratio <- str_trim(gsub("\\*", "", html_text(html_nodes(webpage4, 'td:nth-child(1)'))))
+country_income <- str_trim(gsub("\\*", "", html_text(html_nodes(webpage4, 'td:nth-child(1)'))))
+female_income <- as.numeric(gsub(",", "", html_text(html_nodes(webpage4, 'td:nth-child(3)'))))
+male_income <- as.numeric(gsub(",", "", html_text(html_nodes(webpage4, 'td:nth-child(2)'))))
 ratio <- as.numeric(gsub("\n", "", html_text(html_nodes(webpage4, 'td:nth-child(4)'))))
-income_ratio <- data.frame(row.names = country_ratio, income_ratio = ratio)
+(income <- data.frame(row.names = country_ratio, female_GNI_per_capita = female_income, male_GNI_per_capita = male_income, male_to_female_income_ratio = ratio))
 
 #Human Development Index
 url5 <- "https://countryeconomy.com/hdi?year=2007"
@@ -54,15 +56,15 @@ hdi <- data.frame(row.names = country_hdi, hdi_score = hdi_score, hdi_tiers = hd
 #merge
 merge1 <- merge(gdp, DD_score, by = 'row.names', all = TRUE)
 rownames(merge1) <- merge1$Row.names
-merge2 <- merge(parliament, income_ratio, by = 'row.names', all = TRUE)
+merge2 <- merge(parliament, income, by = 'row.names', all = TRUE)
 rownames(merge2) <- merge2$Row.names
 merge3 <- merge(merge2, hdi, by = 'row.names', all = TRUE)
 rownames(merge3) <- merge3$Row.names
 final_merge <- merge(merge1, merge3, by = 'row.names', all = TRUE)
 rownames(final_merge) <- final_merge$Row.names
-final_merge <- final_merge[, c(3:5, 8:11)]
+final_merge <- final_merge[, c(3:5, 8:13)]
 (final_merge <- final_merge[complete.cases(final_merge), ])
 
 #export into csv
-write.csv(final_merge, "/Users/lkao/Desktop/scrapedmerge_updated.csv", row.names=TRUE)
+write.csv(final_merge, "/Users/lkao/Desktop/*UPDATED_scrapedmerge.csv", row.names=TRUE)
 ```
