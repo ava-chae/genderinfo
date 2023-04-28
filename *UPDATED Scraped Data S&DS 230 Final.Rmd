@@ -1,0 +1,68 @@
+---
+title: "Web Scraping S&DS 230 Final"
+author: "Lee-Ann Kao"
+date: "2023-04-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library('rvest')
+library(stringr)
+#web scraping
+
+#gdp per capita
+url <- "https://photius.com/rankings/economy/gdp_per_capita_2007_0.html"
+webpage <- read_html(url)
+country_gdp <- html_text(html_nodes(webpage, '.desktop~ tr+ tr td:nth-child(3)'))
+gdp_per_capita <- as.numeric(gsub("\\$|,", "", html_text(html_nodes(webpage, '.desktop~ tr+ tr td:nth-child(4)'))))
+gdp <- data.frame(row.names = country_gdp, gdp_per_capita = gdp_per_capita)
+
+#democracy-dictatorship score
+url2 <- "https://en.wikipedia.org/wiki/Democracy-Dictatorship_Index"
+webpage2 <- read_html(url2)
+country_DD <- html_text(html_nodes(webpage2, '.datasortkey a'))
+DD <- html_text(html_nodes(webpage2, 'td:nth-child(2)'))
+DD_type <- gsub("\n", "", html_text(html_nodes(webpage2, 'td:nth-child(3)')))
+DD_score <- data.frame(row.names = country_DD, democracy_dictatorship_score = DD,    type_of_government = DD_type)
+
+#percent in parliament
+url3 <- "http://archive.ipu.org/wmn-e/arc/classif311207.htm"
+webpage3 <- read_html(url3)
+country_parliament <- gsub(" 1", "", html_text(html_nodes(webpage3, 'tr~ tr+ tr td:nth-child(2)')))
+percent_parliament <- as.numeric(gsub("\\%", "", html_text(html_nodes(webpage3, 'tr~ tr+ tr td:nth-child(6)'))))
+parliament <- data.frame(row.names = country_parliament, percent_women_in_parliament = percent_parliament)
+
+#ratio of male to female gross national income per capita (USD PPP)
+url4 <- "https://en.wikipedia.org/wiki/List_of_sovereign_states_by_male_to_female_income_ratio"
+webpage4 <- read_html(url4)
+country_ratio <- str_trim(gsub("\\*", "", html_text(html_nodes(webpage4, 'td:nth-child(1)'))))
+ratio <- as.numeric(gsub("\n", "", html_text(html_nodes(webpage4, 'td:nth-child(4)'))))
+income_ratio <- data.frame(row.names = country_ratio, income_ratio = ratio)
+
+#Human Development Index
+url5 <- "https://countryeconomy.com/hdi?year=2007"
+webpage5 <- read_html(url5)
+country_hdi <- str_trim(gsub("\\[|\\+|\\]", "", html_text(html_nodes(webpage5, 'td:nth-child(1)'))))
+hdi_score <- as.numeric(html_text(html_nodes(webpage5, '.numero:nth-child(2)')))
+hdi_tiers <- cut(hdi_scores, breaks = c(0, 0.55, 0.7, 0.8, 1), labels = c("low", "medium", "high", "very high"))
+hdi <- data.frame(row.names = country_hdi, hdi_score = hdi_score, hdi_tiers = hdi_tiers)
+
+#merge
+merge1 <- merge(gdp, DD_score, by = 'row.names', all = TRUE)
+rownames(merge1) <- merge1$Row.names
+merge2 <- merge(parliament, income_ratio, by = 'row.names', all = TRUE)
+rownames(merge2) <- merge2$Row.names
+merge3 <- merge(merge2, hdi, by = 'row.names', all = TRUE)
+rownames(merge3) <- merge3$Row.names
+final_merge <- merge(merge1, merge3, by = 'row.names', all = TRUE)
+rownames(final_merge) <- final_merge$Row.names
+final_merge <- final_merge[, c(3:5, 8:11)]
+(final_merge <- final_merge[complete.cases(final_merge), ])
+
+#export into csv
+write.csv(final_merge, "/Users/lkao/Desktop/scrapedmerge_updated.csv", row.names=TRUE)
+```
