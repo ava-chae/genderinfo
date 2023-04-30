@@ -1,0 +1,148 @@
+---
+title: "S&DS Final ANOVA"
+author: "Lee-Ann Kao"
+date: "2023-04-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+#For ANOVA/ANCOVA, should have model, interaction plot if two way, discussion of results, Tukey comparisons, residual plots. Include Boxplot
+```{r}
+(gender_info <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/finalmerge.csv"))
+gender_info <- as.data.frame(gender_info[-46, ])
+library(car)
+library(leaps)
+```
+#One-way ANOVA Education vs. Type of Government (simple)
+```{r}
+colnames(gender_info)[7] ="educ"
+colnames(gender_info)[12] ="type"
+gender_info$educ <- as.numeric(gender_info$educ)
+
+#boxplot
+par(mar = c(10, 4, 5, 2), cex = .8)
+boxplot(educ ~ type, data = gender_info, col = 'yellow', main = "Women's Share of Tertiary Enrollment by Government Type", ylab = "Government Type", xlab = "", cex.axis = 0.7, las = 2)
+means <- tapply(gender_info$educ, gender_info$type, mean)
+points(means, col = "red", pch = 19, cex = 1.2)
+text(x = c(1:6), y = means + 4, labels = round(means,2))
+
+#ratio of standard deviations
+(sds <- tapply(gender_info$educ, gender_info$type, sd))
+round(max(sds)/min(sds), 1)
+
+#Fit ANOVA model - use the aov function
+aov1 <- aov(gender_info$educ ~ gender_info$type)
+summary(aov1)
+
+#same thing using lm() - basically regression with indicator variables.
+mod1 <- lm(gender_info$educ ~ gender_info$type -1)
+summary(mod1)
+CIs <- confint(mod1)
+round(CIs, 2)
+coefs <- coef(mod1)
+
+#plot
+library(plotrix)
+par(cex.main = 0.7)
+plotCI(coefs, 1:(length(coefs)), ui = CIs[,2], li = CIs[,1], axes = FALSE, err = "x", ylab = "", xlab = "Mean (and 95% CI)", main = "Mean and CI's for Women's Share of Tertiary Enrollment by Government Type", lwd = 2, col = "blue")
+axis(side = 1)
+axis(side = 2, at = 1:(length(coefs)), label = levels(as.factor(gender_info$type)), las = 2)
+
+#Tukey
+TukeyHSD(aov1)
+par(cex.main = 0.75, cex.axis = 0.5)
+plot(TukeyHSD(aov1), las = 1)
+
+#check assumptions
+par(cex.main = 0.75)
+myResPlots2(aov1, label = "Women's Share of Tertiary Enrollment by Government Type")
+
+#box-cox
+trans1 <- boxCox(mod1)
+trans1$x[which.max(trans1$y)]
+
+#tests of equal variance
+bartlett.test(gender_info$educ, gender_info$type)
+leveneTest(gender_info$educ, gender_info$type)
+
+
+colnames(gender_info)[7] ="womens_share_of_tertiary_enrolment_percent"
+colnames(gender_info)[12] ="type_of_government"
+```
+
+#One-way ANOVA Ratio of Incomes vs. Type of Government (more complex)
+```{r}
+colnames(gender_info)[16] ="ratio"
+colnames(gender_info)[12] ="type"
+gender_info$ratio <- as.numeric(gender_info$ratio)
+
+#boxplot
+par(mar = c(10, 4, 5, 2), cex = .8)
+boxplot(ratio ~ type, data = gender_info, col = 'yellow', main = "Ratio of Men's to Women's Share of GNI per Capita by Government Type", ylab = "Government Type", xlab = "", cex.axis = 0.7, las = 2)
+means <- tapply(gender_info$ratio, gender_info$type, mean)
+points(means, col = "red", pch = 19, cex = 1.2)
+text(x = c(1:6), y = means + .2, labels = round(means,2))
+
+#ratio of standard deviations
+(sds <- tapply(gender_info$ratio, gender_info$type, sd))
+round(max(sds)/min(sds), 1)
+
+#check assumptions
+mod1 <- lm(gender_info$ratio ~ gender_info$type -1)
+
+par(cex.main = 0.75)
+myResPlots2(mod1, label = "Ratio of Men's to Women's Share of GNI per Capita by Government Type")
+
+#tests of equal variance
+bartlett.test(gender_info$ratio, gender_info$type)
+leveneTest(gender_info$ratio, gender_info$type)
+
+#do non-parametric ANOVA
+kruskal.test(gender_info$ratio, gender_info$type)
+
+#What if do Welch's ANOVA which doesn't assume equal variances?
+oneway.test(ratio ~ type, data = gender_info)
+
+#box-cox
+trans1 <- boxCox(mod1)
+trans1$x[which.max(trans1$y)]
+gender_info$ratio1 <- (gender_info$ratio)^-0.67
+
+#ratio of standard deviations
+(sds <- tapply(gender_info$ratio1, gender_info$type, sd))
+round(max(sds)/min(sds), 1)
+
+#check assumptions
+mod2 <- lm(gender_info$ratio1 ~ gender_info$type -1)
+summary(mod2)
+par(cex.main = 0.75)
+myResPlots2(mod2, label = "Ratio of Men's to Women's Share of GNI per Capita by Government Type")
+
+#tests of equal variance
+bartlett.test(gender_info$ratio1, gender_info$type)
+leveneTest(gender_info$ratio1, gender_info$type)
+
+#plot
+CIs <- confint(mod2)
+round(CIs, 2)
+coefs <- coef(mod2)
+library(plotrix)
+par(mar=c(5, 8, 4, 2))
+plotCI(coefs, 1:(length(coefs)), ui = CIs[,2], li = CIs[,1], axes = FALSE, err = "x",
+       ylab = "", xlab = "Mean (and 95% CI)", main = "Mean and CI's for Ratio of Men's to Women's Share of GNI per Capita by Government Type", lwd = 2, col = "blue")
+axis(side = 1)
+axis(side = 2, at = 1:(length(coefs)), label=levels(gender_info$type), las=2)
+
+#Tukey
+aov2 <- aov(gender_info$ratio1 ~ gender_info$type -1)
+par(mar = c(5, 11, 4, 1))
+plot(TukeyHSD(aov2), las = 1)
+
+colnames(gender_info)[16] ="male_to_female_income_ratio"
+colnames(gender_info)[12] ="type_of_government"
+```
