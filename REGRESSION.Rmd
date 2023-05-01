@@ -29,7 +29,7 @@ hist(gender_info$gdp_per_capita, col = "palevioletred", main = "GDP Per Capita")
 qqPlot(gender_info$gdp_per_capita, main = "QQ Plot GDP Per Capita", pch = 19)
 
 #lambda = 0 means log transformation
-gender_info3 <- na.omit(gender_info[ , c("gdp_per_capita", "labour_force_participation_rate_female_percent", "labour_force_participation_rate_male_percent", "mean_age_at_marriage_female", "mean_age_at_marriage_male", "contraceptive_prevalence_rate_any_method_percent", "womens_share_of_tertiary_enrolment_percent", "womens_share_of_labour_force_percent", "total_fertility_rate_per_woman", "percent_women_in_parliament", "male_to_female_income_ratio")])
+gender_info3 <- na.omit(gender_info[ , c("gdp_per_capita", "labour_force_participation_rate_female_percent", "labour_force_participation_rate_male_percent", "mean_age_at_marriage_female", "mean_age_at_marriage_male", "contraceptive_prevalence_rate_any_method_percent", "womens_share_of_tertiary_enrolment_percent", "total_fertility_rate_per_woman", "percent_women_in_parliament", "male_to_female_income_ratio")])
 linear_m <- lm(gdp_per_capita ~ ., data = gender_info3)
 trans1 <- boxCox(linear_m)
 trans1$x[which.max(trans1$y)]
@@ -39,7 +39,7 @@ gender_info$logGDP <- log(gender_info$gdp_per_capita)
 hist(gender_info$logGDP, col = "slateblue", main = "Log GDP Per Capita")
 qqPlot(gender_info$logGDP, main = "QQ Plot Log GDP Per Capita", pch = 19)
 
-gender_info2 <- na.omit(gender_info[ , c("logGDP", "labour_force_participation_rate_female_percent", "labour_force_participation_rate_male_percent", "mean_age_at_marriage_female", "mean_age_at_marriage_male", "contraceptive_prevalence_rate_any_method_percent", "womens_share_of_tertiary_enrolment_percent", "womens_share_of_labour_force_percent", "total_fertility_rate_per_woman", "percent_women_in_parliament", "male_to_female_income_ratio")])
+gender_info2 <- na.omit(gender_info[ , c("logGDP", "labour_force_participation_rate_female_percent", "labour_force_participation_rate_male_percent", "mean_age_at_marriage_female", "mean_age_at_marriage_male", "contraceptive_prevalence_rate_any_method_percent", "womens_share_of_tertiary_enrolment_percent", "total_fertility_rate_per_woman", "percent_women_in_parliament", "male_to_female_income_ratio")])
 gender_info2$womens_share_of_tertiary_enrolment_percent <- as.numeric(gender_info2$womens_share_of_tertiary_enrolment_percent)
 rownames(gender_info2) <- gender_info[, 1]
 ```
@@ -57,17 +57,10 @@ suppressWarnings(pairsJDRS(gender_info2))
 lm1 <- lm(logGDP ~ ., data = gender_info2)
 summary(lm1)
 
-lm2 <- lm(logGDP ~ labour_force_participation_rate_female_percent + labour_force_participation_rate_male_percent + mean_age_at_marriage_female + mean_age_at_marriage_male + contraceptive_prevalence_rate_any_method_percent + womens_share_of_tertiary_enrolment_percent  + womens_share_of_labour_force_percent + total_fertility_rate_per_woman + percent_women_in_parliament , data = gender_info2)
+lm2 <- lm(logGDP ~ labour_force_participation_rate_female_percent +  mean_age_at_marriage_female + total_fertility_rate_per_woman , data = gender_info2)
+summary (lm2)
 
-lm3 <- lm(logGDP ~ labour_force_participation_rate_female_percent + labour_force_participation_rate_male_percent + mean_age_at_marriage_male + contraceptive_prevalence_rate_any_method_percent + womens_share_of_tertiary_enrolment_percent  + womens_share_of_labour_force_percent + total_fertility_rate_per_woman + percent_women_in_parliament , data = gender_info2)
-
-lm4 <- lm(logGDP ~ labour_force_participation_rate_female_percent + labour_force_participation_rate_male_percent + mean_age_at_marriage_male + womens_share_of_tertiary_enrolment_percent  + womens_share_of_labour_force_percent + total_fertility_rate_per_woman + percent_women_in_parliament , data = gender_info2)
-
-lm5 <- lm(logGDP ~ labour_force_participation_rate_female_percent + labour_force_participation_rate_male_percent + mean_age_at_marriage_male + womens_share_of_labour_force_percent + total_fertility_rate_per_woman + percent_women_in_parliament , data = gender_info2)
-
-lm6 <- lm(logGDP ~ labour_force_participation_rate_female_percent + labour_force_participation_rate_male_percent + mean_age_at_marriage_male + womens_share_of_labour_force_percent + total_fertility_rate_per_woman, data = gender_info2)
-
-summary(lm6)
+#mean_age_at_marriage_male + contraceptive_prevalence_rate_any_method_percent + labour_force_participation_rate_male_percent + percent_women_in_parliament + male_to_female_income_ratio + womens_share_of_tertiary_enrolment_percent 
 ```
 
 ## Multiple Regression Residual Plots (NQ Plot, plot of fits vs. residuals)
@@ -79,6 +72,7 @@ Overall, things look good:
 
 *  Residuals seem approximately normally distributed
 *  No evidence of heteroskedasticity
+*  ONE OUTLIER
 *  No extremely influential points
 
 THE END
