@@ -1,0 +1,141 @@
+---
+title: "S&DS 230 Final Project"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+author: S&DS 230/530/ENV 757
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### 1) Introduction
+*Insert text (background, motivation - not more than a short paragraph)*
+
+#### 2)  (8 pts) Data Retrieving & Cleaning
+(DATA: Make a LIST of all variables you actually use – describe units, anything I should
+know. Ignore variables you don’t discuss. Data Cleaning – demonstrate use of find/replace, data cleaning, dealing with missing values, text character replacement, matching. It’s ok if your data didn’t require much of this.)
+```{r}
+gender_info <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/finalmerge.csv")
+(gender_info <- as.data.frame(gender_info))
+names(gender_info)
+```
+*Data cleaning process – describe the cleaning process you used on your data. Talk about what issues you encountered*
+
+#### 3)  (4 pts) Graphics - Boxplot
+(Plots should be clearly labeled, well formatted, and display an aesthetic sense.)
+```{r}
+```
+
+#### 4)  (4 pts) Graphics - Scatterplot
+(Can be a matrix plot. Plots should be clearly labeled, well formatted, and display an aesthetic sense.)
+```{r}
+
+```
+
+#### 5)  (4 pts) Basic Tests - T-test 
+(For ful marks, should include discussion of results - one sentence is fine)
+```{r}
+t.test(gender_info$percent_women_in_parliament, mu = 0.5)
+boxplot(gender_info$percent_women_in_parliament, horizontal = T, col = "seagreen", xlab = "Percentage", main = "Percentage of Women in Parliament", lwd = 2)
+(parm_ci <- t.test(gender_info$percent_women_in_parliament, mu = 0.5)$conf.int) 
+library(car)
+qqPlot(gender_info$percent_women_in_parliament, pch = 19)
+
+```
+*Given that the p-value is less than 2.2e-16, we can reject the null hypothesis. We reject the null hypothesis that the true mean of women’s share of tertiary education is equal to 50%.*
+
+#### 6)  (3 pts) Basic Tests - Correlation 
+(For full marks, should include discussion of results - one sentence is fine)
+```{r}
+(cor1test <- cor.test(gender_info$contraceptive_prevalence_rate_any_method_percent, gender_info$total_fertility_rate_per_woman))
+plot(gender_info$contraceptive_prevalence_rate_any_method_percent, gender_info$total_fertility_rate_per_woman, pch = 19, col = "skyblue", xlab = "Women Labor Force Participation (percentage)", ylab = "Total fertility rate per woman")
+mtext("Women labor force particpation vs total fertility per woman", cex = 1.2, line = 1)
+
+```
+*The p-value of < 2.2e-16 is extremely small (certainly less than 0.05), so we conclude that the correlation is statistically significantly different from zero. The confidence interval for the true correlation is (-0.82, -0.92) which is well away from zero.*
+
+#### 7)  (8 pts) Basic Tests: Bootstrap + (4 pts) Graphics: Histogram
+(Show ability to create bootstrap confidence interval for either a t-test or a correlation. For full marks, should include histogram with both regular and bootstrapped CI shown, as well as a short sentence description of results. Plots should be clearly labeled, well formatted, and display an aesthetic sense.)
+```{r}
+t.test(gender_info$percent_women_in_parliament, mu = 0.5)
+boxplot(gender_info$percent_women_in_parliament, horizontal = T, col = "royalblue", xlab = "Percentage", main = "Percentage of Women in Parliament", lwd = 2)
+(parm_ci <- t.test(gender_info$percent_women_in_parliament, mu = 0.5)$conf.int) 
+
+N <- nrow(gender_info)
+n_samp <- 10000
+
+WomenParli <- rep(NA, n_samp)
+
+for (i in 1:n_samp){
+sample_wparli <- sample(gender_info$percent_women_in_parliament, length(gender_info$percent_women_in_parliamen), replace = TRUE)  
+WomenParli[i] <- mean(sample_wparli)
+}
+(boot_ci <- quantile(WomenParli, c(0.025, 0.975)))
+
+
+
+hist(gender_info$percent_women_in_parliament, main = "Percent of Women in Parliament", xlab = "Percent", col = "royalblue", cex.main = 0.8, breaks = 50)
+abline(v = boot_ci,col = "palevioletred",lwd = 3)
+abline(v = parm_ci, col = "slategray2", lwd = 3, lty = 2)
+legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("brown2","purple2"), lty = c(2, 1))
+
+hist(WomenParli, main = "Mean Percent Return Percent of Women in Parliament", xlab = "Percent", col = "royalblue", cex.main = 0.8, breaks = 50)
+abline(v = boot_ci,col = "palevioletred",lwd = 3)
+abline(v = parm_ci, col = "slategray2", lwd = 3, lty = 2)
+legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("slategray2","palevioletred"), lty = c(2, 1))
+```
+*The boot CI is a bit narrower than the parametric CI; however, the difference is quite small.*
+
+#### 8)  (8 pts) Basic Tests - Permutation Test 
+(Include at least one. For full marks, should include histogram with results, line for actual statistic value, p-value of permutation, and short sentence description of results)
+```{r}
+permCor(gender_info$labour_force_participation_rate_male_percent, gender_info$labour_force_participation_rate_female_percent)
+permCor(gender_info$labour_force_participation_rate_male_percent,gender_info$labour_force_participation_rate_female_percent, plotit = F)
+
+par.cex = 0.6
+permCor(gender_info$male_GNI_per_capita, gender_info$female_GNI_per_capita) 
+permCor(gender_info$male_GNI_per_capita, gender_info$female_GNI_per_capita, plotit = F)
+```
+*The permuted sample correlations for labor force participation rate for males and females has a p-value of 0.0176. This suggests that we reject the null hypothesis. At a significance level of 0.05, we conclude that the labor force participation rate for men and women are different between gender groups.The permuted sample correlations for GNI per capita between men and women has a p-value of 0. We reject the null hypothesis as the observed data is extremely unlikely to have occurred by chance alone. Therefore, the men and women GNI per capita difference is highly based off the difference in gender.* 
+
+#### 9)  (5 pts) Multiple Regression - Description of Plan 
+(Few sentence intro to plan for multiple regression, variables used, process, etc. Use either backwards stepwise regression or some form of best subsets regression. Should include residual plots. A GLM with a mix of continuous and categorical predictors is fine here.)
+*Insert plan*
+
+#### 10)  (5 pts) Multiple Regression - Results and Discussion
+(Results of final model displayed. Discussion of R-squared, parameter direction and significance. Discussion of criteria used to choose final model)
+```{r}
+
+```
+*Insert discussion of criteria used to choose final model*
+
+#### 11)  (5 pts) Multiple Regression: Residual Plots + (4 pts) Graphics: Normal Quantile Plot
+(Normal Quantile Plot of residuals, plot of fits vs. residuals, discussion. Plots should be clearly labeled, well formatted, and display an aesthetic sense.)
+```{r}
+
+```
+*Insert discussion of results*
+
+#### 12)  (8 pts) Multiple Regression - MISC
+(Transformations, heteroskedasticity, completeness, etc.)
+```{r}
+
+```
+*Insert discussion of results*
+
+#### 13)  (10 pts) MANOVA, Logistic Regression, Multinomial, Data Scraping
+(Must have at least one of these techniques. 
+- For ANOVA, should have model, interaction plot if two way, discussion of results, Tukey comparisons, residual plots. 
+- For Logistic Regression, should have discussion of significance of predictors, odds ratios discussion, overall likelihood discussion. Plots optional. Similar for Multinomial. 
+- For Web Scraping, discussion of process, might need to look at code.)
+```{r}
+
+```
+*Insert discussion of results*
+
+#### 14)  Conclusion
+(10 pts) (Quality of presentation, misc additional work, brevity, understanding of material.)
+*Insert Conclusion - short paragraph*
