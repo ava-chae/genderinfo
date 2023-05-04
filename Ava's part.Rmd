@@ -1,0 +1,112 @@
+---
+title: "title"
+author: "authors"
+date: "S&DS Final Project"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo  =  TRUE)
+
+```
+
+## Data Cleaning
+
+### Loading and cleaning condensed data from Github (REMOVE IF TOO LONG)
+
+```{r, warning = F, message = F}
+# read csv file from github to gendergf
+genderdf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/genderinfocondensed.csv")
+
+# cut dataframe to include only 6 variables
+gendertrial <- subset(genderdf, genderdf$category %in% c("total_fertility_rate", "womens_share_of_labour_force", "womens_share_of_tertiary_enrolment", "labour_force_participation_rate", "singulate_mean_age_at_marriage", "contraceptive_prevalence_rate_any_method"))
+# only keep first four characters in year
+gendertrial$year <- substr(gendertrial$year, 0, 4)
+
+```
+
+
+```{r, warning = F, message = F}
+library(dplyr)
+gendertrial <- gendertrial[,-c(4, 6)]
+gendertrial <- gendertrial[complete.cases(gendertrial), ]
+gendertrial <- gendertrial[gendertrial$value != "…", ]
+gendertrial <- gendertrial[order(gendertrial[,3], decreasing = TRUE), ]
+gendertrial <- gendertrial[!duplicated(gendertrial[c("country_or_area", "category", "subgroup")]),]
+
+```
+
+```{r, warning = F, message = F}
+
+# make total fertility rate subset
+total_fertility_rate_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'value'))
+colnames(total_fertility_rate_df)[which(names(total_fertility_rate_df) == "value")] <- "total_fertility_rate_per_woman"
+# make women's share of labour force subset
+womens_share_of_labour_force_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_labour_force', select = c('country_or_area', 'value'))
+colnames(womens_share_of_labour_force_df)[which(names(womens_share_of_labour_force_df) == "value")] <- "womens_share_of_labour_force_percent"
+# make women's share of tertiary enrollment subset
+womens_share_of_tertiary_enrolment_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_tertiary_enrolment', select = c('country_or_area', 'value'))
+colnames(womens_share_of_tertiary_enrolment_df)[which(names(womens_share_of_tertiary_enrolment_df) == "value")] <- "womens_share_of_tertiary_enrolment_percent"
+# make labor force participation rate subset split by gender
+labour_force_participation_rate_female_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Female 15+ yr', select = c('country_or_area', 'value'))
+colnames(labour_force_participation_rate_female_df)[which(names(labour_force_participation_rate_female_df) == "value")] <- "labour_force_participation_rate_female_percent"
+labour_force_participation_rate_male_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Male 15+ yr', select = c('country_or_area', 'value'))
+colnames(labour_force_participation_rate_male_df)[which(names(labour_force_participation_rate_male_df) == "value")] <- "labour_force_participation_rate_male_percent"
+# make singulate mean age at marriage subset split by gender
+singulate_mean_age_at_marriage_female_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Female', select = c('country_or_area', 'value'))
+colnames(singulate_mean_age_at_marriage_female_df)[which(names(singulate_mean_age_at_marriage_female_df) == "value")] <- "mean_age_at_marriage_female"
+singulate_mean_age_at_marriage_male_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Male', select = c('country_or_area', 'value'))
+colnames(singulate_mean_age_at_marriage_male_df)[which(names(singulate_mean_age_at_marriage_male_df) == "value")] <- "mean_age_at_marriage_male"
+# make contraceptive prevalence rate any method subset
+contraceptive_prevalence_rate_any_method_df <- subset(gendertrial, gendertrial$category == 'contraceptive_prevalence_rate_any_method', select = c('country_or_area', 'value'))
+colnames(contraceptive_prevalence_rate_any_method_df)[which(names(contraceptive_prevalence_rate_any_method_df) == "value")] <- "contraceptive_prevalence_rate_any_method_percent"
+
+```
+
+
+```{r, warning = F, message = F}
+# all subsets merged 
+allmerge0 = merge(labour_force_participation_rate_female_df, merge(labour_force_participation_rate_male_df, merge(singulate_mean_age_at_marriage_female_df, merge(singulate_mean_age_at_marriage_male_df, merge(contraceptive_prevalence_rate_any_method_df, merge(womens_share_of_tertiary_enrolment_df, merge(womens_share_of_labour_force_df, total_fertility_rate_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
+completemerge0 <- allmerge0[complete.cases(allmerge0),]
+```
+
+
+
+
+
+```{r, warning = F, message = F}
+# read csv file from github to scraped data
+scrapeddf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/*UPDATED_scrapedmerge.csv")
+colnames(scrapeddf)[1] = "country_or_area"
+# merge scraped data with gender data
+finalmerge <- merge(completemerge0, scrapeddf, by = c("country_or_area"), all = T)
+finalmerge <- finalmerge[complete.cases(finalmerge),]
+write.csv(finalmerge, "finalmerge.csv", row.names=FALSE)
+```
+
+
+Make a LIST of all variables you actually use – describe units, anything I should know.
+
+*The final cleaned and merged dataset used 14 continuous variables and 3 categorical variables. Gender-specific data was collected from Kaggle (https://www.kaggle.com/datasets/unitednations/gender-info-2007) and additional data was scraped from various websites.*
+
+* Labor force participation rate (male and female): continuous as a percent of 100
+* Mean age at marriage (male and female): continuous in years
+* Contraceptive prevalence rate any method: continuous as percent of 100
+* Women's share of tertiary enrollment: continuous as percent of 100
+* Women's share of labor force: continuous as percent of 100
+* Total fertility rate per woman: continuous as number of average births per woman
+* GDP per capita (in 2007): continuous average GDP per person
+* Percent women in parliament: continuous as percent of 100
+* Male to female income ratio: continuous average male to female income ratio
+* GNI per capita (male and female): continuous average GNI per person
+* HDI score: continuous Human Development Index score from the UN
+* Democracy dictatorship: categorical classification of Democracy vs. Dictatorship
+* Type of government: categorical classification of national government type
+* HDI tier: categorical classification of HDI score (0.8-1: very high; 0.7-0.79: high; 0.55-0.69: medium; 0-0.55: low)
+
+*The original Kaggle gender information data was first condensed by removing irrelevant columns to be able to upload to GitHub. The condensed datafile is loaded then cut to include only 6 variables that we wanted to analyze. The values of year sometimes had multiple years, so for simplicity, we only kept the first year in each row.  Irrelevant columns were removed, and only complete rows were kept. Next, because some countries had several years worth of data for certain variables, we only kept the most recent data values for duplicate rows. The major cleaning aspect was splitting and merging the dataset. The dataset did not have each variable as a separate column and instead just named all the variables in one column, we had to separate the rows to make analysis much easier. Each variable was split and merged together to form a dataframe in which each variable was given a separate column. Only complete cases were kept in the final data. Finally, the additional web scraped data was pulled from GitHub and merged with the cleaned Kaggle data to form the finalmerge.csv file for analysis. The main issues we encountered was finding that data for most variables only existed for certain countries as well as separating variables into different columns without taking too many lines of code.*
+
+
+
