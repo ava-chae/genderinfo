@@ -81,11 +81,11 @@ ratio <- as.numeric(gsub("\n", "", html_text(html_nodes(webpage4, 'td:nth-child(
 genderdf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/genderinfocondensed.csv")
 # cut dataframe to include only 6 variables
 gendertrial <- subset(genderdf, genderdf$category %in% c("total_fertility_rate", "womens_share_of_labour_force", "womens_share_of_tertiary_enrolment", "labour_force_participation_rate", "singulate_mean_age_at_marriage", "contraceptive_prevalence_rate_any_method"))
-# only keep first four characters in year
-gendertrial$year <- substr(gendertrial$year, 0, 4)
 ```
 
 ```{r, warning = F, message = F}
+# clean new dataframe
+gendertrial$year <- substr(gendertrial$year, 0, 4)
 gendertrial <- gendertrial[,-c(4, 6)]
 gendertrial <- gendertrial[complete.cases(gendertrial), ]
 gendertrial <- gendertrial[gendertrial$value != "…", ]
@@ -94,29 +94,25 @@ gendertrial <- gendertrial[!duplicated(gendertrial[c("country_or_area", "categor
 ```
 
 ```{r, warning = F, message = F}
-# make total fertility rate subset
-tfr_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'value'))
-colnames(tfr_df)[which(names(tfr_df) == "value")] <- "fertility_rate"
-# make women's share of labour force subset
+# make each variable subset & split by gender when necesary
+tfr_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'value')) 
+colnames(tfr_df)[2] <- "fertility_rate"
 wslf_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_labour_force', select = c('country_or_area', 'value'))
-colnames(wslf_df)[which(names(wslf_df) == "value")] <- "w_labor_force"
-# make women's share of tertiary enrollment subset
+colnames(wslf_df)[2] <- "w_labor_force"
 wste_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_tertiary_enrolment', select = c('country_or_area', 'value'))
-colnames(wste_df)[which(names(wste_df) == "value")] <- "w_tert_enroll"
-# make labor force participation rate subset split by gender
+colnames(wste_df)[2] <- "w_tert_enroll"
 lfp_f_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Female 15+ yr', select = c('country_or_area', 'value'))
-colnames(lfp_f_df)[which(names(lfp_f_df) == "value")] <- "lfp_rate_f"
+colnames(lfp_f_df)[2] <- "lfp_rate_f"
 lfp_m_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Male 15+ yr', select = c('country_or_area', 'value'))
-colnames(lfp_m_df)[which(names(lfp_m_df) == "value")] <- "lfp_rate_m"
-# make singulate mean age at marriage subset split by gender
+colnames(lfp_m_df)[2] <- "lfp_rate_m"
 age_mar_f_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Female', select = c('country_or_area', 'value'))
-colnames(age_mar_f_df)[which(names(age_mar_f_df) == "value")] <- "age_marriage_f"
+colnames(age_mar_f_df)[2] <- "age_marriage_f"
 age_mar_m_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Male', select = c('country_or_area', 'value'))
-colnames(age_mar_m_df)[which(names(age_mar_m_df) == "value")] <- "age_marriage_m"
-# make contraceptive prevalence rate any method subset
+colnames(age_mar_m_df)[2] <- "age_marriage_m"
 contprev_df <- subset(gendertrial, gendertrial$category == 'contraceptive_prevalence_rate_any_method', select = c('country_or_area', 'value'))
-colnames(contprev_df)[which(names(contprev_df) == "value")] <- "cont_prev_rate"
+colnames(contprev_df)[2] <- "cont_prev_rate"
 ```
+
 
 ```{r, warning = F, message = F}
 # all subsets merged 
