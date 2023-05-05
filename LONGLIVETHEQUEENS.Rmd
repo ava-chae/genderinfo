@@ -44,7 +44,7 @@ permCor <- function(x, y, n_samp = 10000, plotit = T){
 ```
 
 #### Introduction
-*Insert text (background, motivation - not more than a short paragraph)*
+*The data in this project is derived from 2007 Gender Information. Our group was drawn to this data given our shared background of discrimination in the workplace and society. After experiencing gender inequality together during a separate project earlier in the year, we wanted to learn more about how large this issue is on a macro level.*
 
 #### Web Scraping
 ```{r}
@@ -53,20 +53,17 @@ url <- "https://photius.com/rankings/economy/gdp_per_capita_2007_0.html"
 webpage <- read_html(url)
 country_gdp <- html_text(html_nodes(webpage, '.desktop~ tr+ tr td:nth-child(3)'))
 gdp_per_capita <- as.numeric(gsub("\\$|,", "", html_text(html_nodes(webpage, '.desktop~ tr+ tr td:nth-child(4)'))))
-gdp <- data.frame(row.names = country_gdp, gdp_per_capita = gdp_per_capita)
 #democracy-dictatorship score
 url2 <- "https://en.wikipedia.org/wiki/Democracy-Dictatorship_Index"
 webpage2 <- read_html(url2)
 country_DD <- html_text(html_nodes(webpage2, '.datasortkey a'))
 DD <- html_text(html_nodes(webpage2, 'td:nth-child(2)'))
 DD_type <- gsub("\n", "", html_text(html_nodes(webpage2, 'td:nth-child(3)')))
-DD_score <- data.frame(row.names = country_DD, democracy_dictatorship_score = DD,    type_of_government = DD_type)
 #percent in parliament
 url3 <- "http://archive.ipu.org/wmn-e/arc/classif311207.htm"
 webpage3 <- read_html(url3)
 country_parliament <- gsub(" 1", "", html_text(html_nodes(webpage3, 'tr~ tr+ tr td:nth-child(2)')))
 percent_parliament <- as.numeric(gsub("\\%", "", html_text(html_nodes(webpage3, 'tr~ tr+ tr td:nth-child(6)'))))
-parliament <- data.frame(row.names = country_parliament, percent_women_in_parliament = percent_parliament)
 #male vs. female gross national income per capita (USD PPP)
 url4 <- "https://en.wikipedia.org/wiki/List_of_sovereign_states_by_male_to_female_income_ratio"
 webpage4 <- read_html(url4)
@@ -74,18 +71,8 @@ country_income <- str_trim(gsub("\\*", "", html_text(html_nodes(webpage4, 'td:nt
 female_income <- as.numeric(gsub(",", "", html_text(html_nodes(webpage4, 'td:nth-child(3)'))))
 male_income <- as.numeric(gsub(",", "", html_text(html_nodes(webpage4, 'td:nth-child(2)'))))
 ratio <- as.numeric(gsub("\n", "", html_text(html_nodes(webpage4, 'td:nth-child(4)'))))
-income <- data.frame(row.names = country_income, female_GNI_per_capita = female_income, male_GNI_per_capita = male_income, male_to_female_income_ratio = ratio)
-#merge
-merge1 <- merge(gdp, DD_score, by = 'row.names', all = TRUE)
-rownames(merge1) <- merge1$Row.names
-merge2 <- merge(parliament, income, by = 'row.names', all = TRUE)
-rownames(merge2) <- merge2$Row.names
-final_merge <- merge(merge1, merge2, by = 'row.names', all = TRUE)
-rownames(final_merge) <- final_merge$Row.names
-final_merge <- final_merge[, c(3:5, 7:10)]
-final_merge <- final_merge[complete.cases(final_merge), ]
 ```
-*I scraped data on GDP per capita, Democracy-Dictatorship classifications, government type, percent of women in lower/single house parliament, and male vs. female gross national income per capita (USD PPP) for countries in 2007 across various websites with the help of the SelectorGadget Chrome extension. I then cleaned the data as necessary using gsub for commas, trailing spaces, and other characters, made data frames of each variable, merged all data frames by country name, and took only complete cases.*
+*I scraped data on GDP per capita, government type, percent of women in lower/single house parliament, and male vs. female gross national income per capita (USD PPP) for countries in 2007 across various websites with the help of the SelectorGadget Chrome extension. I then cleaned the data as necessary using gsub for commas, trailing spaces, and other characters.*
 
 #### Data Retrieving & Cleaning
 
@@ -260,16 +247,14 @@ text(x = c(1:6), y = means + 4, labels = round(means,2))
 #ratio of standard deviations
 (sds <- tapply(gender_info$w_tert_enroll, gender_info$type_of_government, sd))
 round(max(sds)/min(sds), 1)
-#Fit ANOVA model - use the aov function
+#Fit ANOVA model
 aov1 <- aov(gender_info$w_tert_enroll ~ gender_info$type_of_government)
 summary(aov1)
-#same thing using lm() - basically regression with indicator variables.
 mod1 <- lm(gender_info$w_tert_enroll ~ gender_info$type_of_government -1)
 summary(mod1)
-CIs <- confint(mod1)
-round(CIs, 2)
-coefs <- coef(mod1)
 #plot
+CIs <- round(confint(mod1), 2)
+coefs <- coef(mod1)
 par(cex.main = 0.7, cex.lab = 0.8, mar = c(4, 12, 5, 2))
 plotCI(coefs, 1:(length(coefs)), ui = CIs[,2], li = CIs[,1], axes = FALSE, err = "x", ylab = "", xlab = "Mean (and 95% CI)", main = "Mean and CI's for Women's Share of Tertiary Enrollment by Government Type", lwd = 2, col = "blue")
 axis(side = 1)
@@ -282,10 +267,8 @@ plot(TukeyHSD(aov1), las = 1)
 par(cex.main = 0.75, cex.lab = 1, mar = c(4, 5, 5, 2))
 myResPlots2(aov1, label = "Women's Share of Tertiary Enrollment by Government Type")
 bartlett.test(gender_info$w_tert_enroll, gender_info$type_of_government)
-leveneTest(gender_info$w_tert_enroll, gender_info$type_of_government)
 ```
-*Insert discussion of results*
+*In the boxplot the five-point-summary of fatality varies greatly by government type, indicating a possible difference in means (in particular, civilian and military dictatorships have a much smaller women's share of tertiary enrollment). It is reasonable to assume that the variances are the same across groups because the ratio of largest to smallest sample standard deviations is 1.7, which is less than 2. The mean share of tertiary enrollment is statistically significantly different between government types because the p-value of 0.000147 is less than alpha at 0.05, so we can reject the null hypothesis that there is no difference in mean women's share of tertiary education by government type. Except for in comparison to Royal Dictatorships, any pair of government type with Military Dictatorships had a statistically significant difference in mean women's share of tertiary enrollment, as the p-values were all less than alpha at 0.05. Finally, the residuals appear to be normally distributed as most fall within the 95% confidence interval of the normal quantile plot. Furthermore, the residuals all fall within the 95% confidence interval in the fits vs. residuals plot, and our tests of equal variance do not show a statistically significant difference in standard deviations across groups, as the p-values are greater than alpha at 0.05. Therefore, we meet ANOVA's assumptions that residuals are normally distributed within each group and that variability within groups is relatively constant across groups.*
 
 #### Conclusion
-(Quality of presentation, misc additional work, brevity, understanding of material.)
 *Insert Conclusion - short paragraph*
