@@ -108,32 +108,32 @@ gendertrial <- gendertrial[!duplicated(gendertrial[c("country_or_area", "categor
 
 ```{r, warning = F, message = F}
 # make total fertility rate subset
-total_fertility_rate_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'value'))
-colnames(total_fertility_rate_df)[which(names(total_fertility_rate_df) == "value")] <- "total_fertility_rate_per_woman"
+tfr_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'value'))
+colnames(tfr_df)[which(names(tfr_df) == "value")] <- "fertility_rate"
 # make women's share of labour force subset
-womens_share_of_labour_force_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_labour_force', select = c('country_or_area', 'value'))
-colnames(womens_share_of_labour_force_df)[which(names(womens_share_of_labour_force_df) == "value")] <- "womens_share_of_labour_force_percent"
+wslf_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_labour_force', select = c('country_or_area', 'value'))
+colnames(wslf_df)[which(names(wslf_df) == "value")] <- "w_labor_force"
 # make women's share of tertiary enrollment subset
-womens_share_of_tertiary_enrolment_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_tertiary_enrolment', select = c('country_or_area', 'value'))
-colnames(womens_share_of_tertiary_enrolment_df)[which(names(womens_share_of_tertiary_enrolment_df) == "value")] <- "womens_share_of_tertiary_enrolment_percent"
+wste_df <- subset(gendertrial, gendertrial$category == 'womens_share_of_tertiary_enrolment', select = c('country_or_area', 'value'))
+colnames(wste_df)[which(names(wste_df) == "value")] <- "w_tert_enroll"
 # make labor force participation rate subset split by gender
-labour_force_participation_rate_female_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Female 15+ yr', select = c('country_or_area', 'value'))
-colnames(labour_force_participation_rate_female_df)[which(names(labour_force_participation_rate_female_df) == "value")] <- "labour_force_participation_rate_female_percent"
-labour_force_participation_rate_male_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Male 15+ yr', select = c('country_or_area', 'value'))
-colnames(labour_force_participation_rate_male_df)[which(names(labour_force_participation_rate_male_df) == "value")] <- "labour_force_participation_rate_male_percent"
+lfp_f_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Female 15+ yr', select = c('country_or_area', 'value'))
+colnames(lfp_f_df)[which(names(lfp_f_df) == "value")] <- "lfp_rate_f"
+lfp_m_df <- subset(gendertrial, gendertrial$category == 'labour_force_participation_rate' & gendertrial$subgroup == 'Male 15+ yr', select = c('country_or_area', 'value'))
+colnames(lfp_m_df)[which(names(lfp_m_df) == "value")] <- "lfp_rate_m"
 # make singulate mean age at marriage subset split by gender
-singulate_mean_age_at_marriage_female_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Female', select = c('country_or_area', 'value'))
-colnames(singulate_mean_age_at_marriage_female_df)[which(names(singulate_mean_age_at_marriage_female_df) == "value")] <- "mean_age_at_marriage_female"
-singulate_mean_age_at_marriage_male_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Male', select = c('country_or_area', 'value'))
-colnames(singulate_mean_age_at_marriage_male_df)[which(names(singulate_mean_age_at_marriage_male_df) == "value")] <- "mean_age_at_marriage_male"
+age_mar_f_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Female', select = c('country_or_area', 'value'))
+colnames(age_mar_f_df)[which(names(age_mar_f_df) == "value")] <- "age_marriage_f"
+age_mar_m_df <- subset(gendertrial, gendertrial$category == 'singulate_mean_age_at_marriage' & gendertrial$subgroup == 'Male', select = c('country_or_area', 'value'))
+colnames(age_mar_m_df)[which(names(age_mar_m_df) == "value")] <- "age_marriage_m"
 # make contraceptive prevalence rate any method subset
-contraceptive_prevalence_rate_any_method_df <- subset(gendertrial, gendertrial$category == 'contraceptive_prevalence_rate_any_method', select = c('country_or_area', 'value'))
-colnames(contraceptive_prevalence_rate_any_method_df)[which(names(contraceptive_prevalence_rate_any_method_df) == "value")] <- "contraceptive_prevalence_rate_any_method_percent"
+contprev_df <- subset(gendertrial, gendertrial$category == 'contraceptive_prevalence_rate_any_method', select = c('country_or_area', 'value'))
+colnames(contprev_df)[which(names(contprev_df) == "value")] <- "cont_prev_rate"
 ```
 
 ```{r, warning = F, message = F}
 # all subsets merged 
-allmerge0 = merge(labour_force_participation_rate_female_df, merge(labour_force_participation_rate_male_df, merge(singulate_mean_age_at_marriage_female_df, merge(singulate_mean_age_at_marriage_male_df, merge(contraceptive_prevalence_rate_any_method_df, merge(womens_share_of_tertiary_enrolment_df, merge(womens_share_of_labour_force_df, total_fertility_rate_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
+allmerge0 = merge(lfp_f_df, merge(lfp_m_df, merge(age_mar_f_df, merge(age_mar_m_df, merge(contprev_df, merge(wste_df, merge(wslf_df, tfr_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
 completemerge0 <- allmerge0[complete.cases(allmerge0),]
 ```
 
@@ -145,18 +145,18 @@ colnames(scrapeddf)[1] = "country_or_area"
 finalmerge <- merge(completemerge0, scrapeddf, by = c("country_or_area"), all = T)
 gender_info <- finalmerge[complete.cases(finalmerge),]
 # make as numeric
-gender_info <- gender_info %>% mutate_at(c('labour_force_participation_rate_female_percent', 'labour_force_participation_rate_male_percent', 'mean_age_at_marriage_male', 'mean_age_at_marriage_female', 'contraceptive_prevalence_rate_any_method_percent', 'womens_share_of_tertiary_enrolment_percent', 'womens_share_of_labour_force_percent', 'total_fertility_rate_per_woman'), as.numeric)
+gender_info <- gender_info %>% mutate_at(c('lfp_rate_f', 'lfp_rate_m', 'age_marriage_m', 'age_marriage_f', 'cont_prev_rate', 'w_tert_enroll', 'w_labor_force', 'fertility_rate'), as.numeric)
 ```
 *The final cleaned and merged dataset used 14 continuous variables and 3 categorical variables. Gender-specific data was collected from Kaggle (https://www.kaggle.com/datasets/unitednations/gender-info-2007) and additional data was scraped from various websites.*
 
 *The original Kaggle gender information data was first condensed by removing irrelevant columns to be able to upload to GitHub. The condensed datafile is loaded then cut to include only 6 variables that we wanted to analyze. The values of year sometimes had multiple years, so for simplicity, we only kept the first year in each row.  Irrelevant columns were removed, and only complete rows were kept. Next, because some countries had several years worth of data for certain variables, we only kept the most recent data values for duplicate rows. The major cleaning aspect was splitting and merging the dataset. The dataset did not have each variable as a separate column and instead just named all the variables in one column, we had to separate the rows to make analysis much easier. Each variable was split and merged together to form a dataframe in which each variable was given a separate column. Only complete cases were kept in the final data. Finally, the additional web scraped data was pulled from GitHub and merged with the cleaned Kaggle data to form the finalmerge.csv file for analysis. The main issues we encountered was finding that data for most variables only existed for certain countries as well as separating variables into different columns without taking too many lines of code.*
 
-* Labor force participation rate (male and female): continuous as a percent of 100
-* Mean age at marriage (male and female): continuous in years
-* Contraceptive prevalence rate any method: continuous as percent of 100
-* Women's share of tertiary enrollment: continuous as percent of 100
-* Women's share of labor force: continuous as percent of 100
-* Total fertility rate per woman: continuous as number of average births per woman
+* Labor force participation rate (lfp_rate_m & f): continuous as a percent
+* Mean age at marriage (age_marriage_m & f): continuous in years
+* Contraceptive prevalence rate (cont_prev_rate): continuous as percent
+* Women's share of tertiary enrollment (w_tert_enroll): continuous as percent
+* Women's share of labor force (w_labor_force): continuous as percent
+* Total fertility rate per woman (fertility_rate): continuous as number of average births per woman
 * GDP per capita (in 2007): continuous average GDP per person
 * Percent women in parliament: continuous as percent of 100
 * Male to female income ratio: continuous average male to female income ratio
@@ -165,9 +165,9 @@ gender_info <- gender_info %>% mutate_at(c('labour_force_participation_rate_fema
 
 #### Correlation Test 
 ```{r}
-class(gender_info$contraceptive_prevalence_rate_any_method_percent)
-(cor1test <- cor.test(gender_info$contraceptive_prevalence_rate_any_method_percent, gender_info$total_fertility_rate_per_woman))
-plot(gender_info$contraceptive_prevalence_rate_any_method_percent, gender_info$total_fertility_rate_per_woman, pch = 19, col = "skyblue", xlab = "Contraceptive Prevalence Rate", ylab = "Total Fertility Rate (per woman)")
+class(gender_info$cont_prev_rate)
+(cor1test <- cor.test(gender_info$cont_prev_rate, gender_info$fertility_rate))
+plot(gender_info$cont_prev_rate, gender_info$fertility_rate, pch = 19, col = "skyblue", xlab = "Contraceptive Prevalence Rate", ylab = "Total Fertility Rate (per woman)")
 mtext("Contraceptive Prevalence Rate vs Total Fertility Rate", cex = 1.2, line = 1)
 ```
 *The p-value of < 2.2e-16 is extremely small (certainly less than 0.05), so we conclude that the correlation is statistically significantly different from zero. The confidence interval for the true correlation is (-0.82, -0.92) which is well away from zero.*
@@ -201,8 +201,8 @@ legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("slate
 #### Permutation Test 
 (Include at least one. For full marks, should include histogram with results, line for actual statistic value, p-value of permutation, and short sentence description of results)
 ```{r}
-permCor(gender_info$labour_force_participation_rate_male_percent, gender_info$labour_force_participation_rate_female_percent)
-permCor(gender_info$labour_force_participation_rate_male_percent,gender_info$labour_force_participation_rate_female_percent, plotit = F)
+permCor(gender_info$lfp_rate_m, gender_info$lfp_rate_f)
+permCor(gender_info$lfp_rate_m,gender_info$lfp_rate_f, plotit = F)
 par.cex = 0.6
 permCor(gender_info$male_GNI_per_capita, gender_info$female_GNI_per_capita) 
 permCor(gender_info$male_GNI_per_capita, gender_info$female_GNI_per_capita, plotit = F)
@@ -218,7 +218,7 @@ hist(gender_info$gdp_per_capita, col = "palevioletred", main = "GDP Per Capita")
 qqPlot(gender_info$gdp_per_capita, main = "QQ Plot GDP Per Capita", pch = 19)
 
 #lambda = 0 means log transformation
-gender_info3 <- na.omit(gender_info[ , c("gdp_per_capita", "labour_force_participation_rate_female_percent", "labour_force_participation_rate_male_percent", "mean_age_at_marriage_female", "mean_age_at_marriage_male", "contraceptive_prevalence_rate_any_method_percent", "womens_share_of_tertiary_enrolment_percent", "total_fertility_rate_per_woman", "percent_women_in_parliament", "male_to_female_income_ratio")])
+gender_info3 <- na.omit(gender_info[ , c("gdp_per_capita", "lfp_rate_f", "lfp_rate_m", "age_marriage_f", "age_marriage_m", "cont_prev_rate", "w_tert_enroll", "fertility_rate", "percent_women_in_parliament", "male_to_female_income_ratio")])
 linear_m <- lm(gdp_per_capita ~ ., data = gender_info3)
 trans1 <- boxCox(linear_m)
 trans1$x[which.max(trans1$y)]
@@ -228,7 +228,7 @@ gender_info$logGDP <- log(gender_info$gdp_per_capita)
 hist(gender_info$logGDP, col = "slateblue", main = "Log GDP Per Capita")
 qqPlot(gender_info$logGDP, main = "QQ Plot Log GDP Per Capita", pch = 19)
 
-gender_info2 <- na.omit(gender_info[ , c("logGDP", "labour_force_participation_rate_female_percent", "labour_force_participation_rate_male_percent", "mean_age_at_marriage_female", "mean_age_at_marriage_male", "contraceptive_prevalence_rate_any_method_percent", "womens_share_of_tertiary_enrolment_percent", "total_fertility_rate_per_woman", "percent_women_in_parliament", "male_to_female_income_ratio")])
+gender_info2 <- na.omit(gender_info[ , c("logGDP", "lfp_rate_f", "lfp_rate_m", "age_marriage_f", "age_marriage_m", "cont_prev_rate", "w_tert_enroll", "fertility_rate", "percent_women_in_parliament", "male_to_female_income_ratio")])
 rownames(gender_info2) <- gender_info[, 1]
 
 suppressWarnings(pairsJDRS(gender_info2))
@@ -239,7 +239,7 @@ suppressWarnings(pairsJDRS(gender_info2))
 #Backwards Stepwise Regression
 lm1 <- lm(logGDP ~ ., data = gender_info2)
 summary(lm1)
-lm2 <- lm(logGDP ~ labour_force_participation_rate_female_percent +  mean_age_at_marriage_female + total_fertility_rate_per_woman , data = gender_info2)
+lm2 <- lm(logGDP ~ lfp_rate_f +  age_marriage_f + fertility_rate , data = gender_info2)
 summary (lm2)
 
 #NQ Plot and Fits vs. Residual Plot
@@ -253,18 +253,18 @@ For ANOVA, should have model, interaction plot if two way, discussion of results
 ```{r}
 #boxplot
 par(mar = c(10, 4, 5, 2), cex = .8)
-boxplot(womens_share_of_tertiary_enrolment_percent ~ type_of_government, data = gender_info, col = 'yellow', main = "Women's Share of Tertiary Enrollment by Government Type", ylab = "Women's Share of Tertiary Enrollment", xlab = "", cex.axis = 0.7, las = 2)
-means <- tapply(gender_info$womens_share_of_tertiary_enrolment_percent, gender_info$type_of_government, mean)
+boxplot(w_tert_enroll ~ type_of_government, data = gender_info, col = 'yellow', main = "Women's Share of Tertiary Enrollment by Government Type", ylab = "Women's Share of Tertiary Enrollment", xlab = "", cex.axis = 0.7, las = 2)
+means <- tapply(gender_info$w_tert_enroll, gender_info$type_of_government, mean)
 points(means, col = "red", pch = 19, cex = 1.2)
 text(x = c(1:6), y = means + 4, labels = round(means,2))
 #ratio of standard deviations
-(sds <- tapply(gender_info$womens_share_of_tertiary_enrolment_percent, gender_info$type_of_government, sd))
+(sds <- tapply(gender_info$w_tert_enroll, gender_info$type_of_government, sd))
 round(max(sds)/min(sds), 1)
 #Fit ANOVA model - use the aov function
-aov1 <- aov(gender_info$womens_share_of_tertiary_enrolment_percent ~ gender_info$type_of_government)
+aov1 <- aov(gender_info$w_tert_enroll ~ gender_info$type_of_government)
 summary(aov1)
 #same thing using lm() - basically regression with indicator variables.
-mod1 <- lm(gender_info$womens_share_of_tertiary_enrolment_percent ~ gender_info$type_of_government -1)
+mod1 <- lm(gender_info$w_tert_enroll ~ gender_info$type_of_government -1)
 summary(mod1)
 CIs <- confint(mod1)
 round(CIs, 2)
@@ -281,8 +281,8 @@ plot(TukeyHSD(aov1), las = 1)
 #check assumptions
 par(cex.main = 0.75, cex.lab = 1, mar = c(4, 5, 5, 2))
 myResPlots2(aov1, label = "Women's Share of Tertiary Enrollment by Government Type")
-bartlett.test(gender_info$womens_share_of_tertiary_enrolment_percent, gender_info$type_of_government)
-leveneTest(gender_info$womens_share_of_tertiary_enrolment_percent, gender_info$type_of_government)
+bartlett.test(gender_info$w_tert_enroll, gender_info$type_of_government)
+leveneTest(gender_info$w_tert_enroll, gender_info$type_of_government)
 ```
 *Insert discussion of results*
 
