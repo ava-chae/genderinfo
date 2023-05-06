@@ -4,9 +4,7 @@ author: "Long Live the Queens"
 date: "2023-05-06"
 output:
   word_document: default
-  pdf_document: default
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readr)
@@ -30,19 +28,18 @@ permCor <- function(x, y, n_samp = 10000, plotit = T){
    
    if (plotit == T){
       #Make histogram of permuted correlations
-      hist(corResults, col = "yellow", main = "", xlab = "Correlations", breaks = 50,
+      hist(corResults, col = "#DBCA72", main = "", xlab = "Correlations", breaks = 50,
            xlim = range(corResults,cor(x,y)))
       mtext("Permuted Sample Correlations", cex = 1.2, line = 1)
       mtext(paste0("Permuted P-value = ", round(pval, 4),", Calculated P-value = ", round(cor.test(x, y)$p.value, 4)), cex = 0.8, line = 0)
-      abline(v = cor(x, y), col = "blue", lwd = 3)
-      text(cor(x,y)*1.05, 0, paste("Actual Correlation =", round(cor(x, y), 2)), srt = 90, adj = 0)
+      abline(v = cor(x, y), col = "#10289E", lwd = 3)
+      text(cor(x,y)*.95, 0, paste("Actual Correlation =", round(cor(x, y), 2)), srt = 90, adj = 0)
    }
    if (plotit == F){
       return(round(pval, 5))
    }  
 }
 ```
-
 #### Introduction
 *The data in this project is derived from 2007 Gender Information. Our group was drawn to this data given our shared background of discrimination in the workplace and society. After experiencing gender inequality together during a separate project earlier in the year, we wanted to learn more about how large this issue is on a macro level.*
 
@@ -72,17 +69,15 @@ female_income <- as.numeric(gsub(",", "", html_text(html_nodes(webpage4, 'td:nth
 male_income <- as.numeric(gsub(",", "", html_text(html_nodes(webpage4, 'td:nth-child(2)'))))
 ratio <- as.numeric(gsub("\n", "", html_text(html_nodes(webpage4, 'td:nth-child(4)'))))
 ```
-*I scraped data on GDP per capita, government type, percent of women in lower/single house parliament, and male vs. female gross national income per capita (USD PPP) for countries in 2007 across various websites with the help of the SelectorGadget Chrome extension. I then cleaned the data as necessary using gsub for commas, trailing spaces, and other characters.*
+*We scraped and cleaned data on GDP per capita, government type, percent of women in lower/single house parliament, and male vs. female gross national income per capita for countries in 2007 across various websites with the help of the SelectorGadget Chrome extension.*
 
 #### Data Retrieving & Cleaning
-
 ```{r, warning = F, message = F}
 # read csv file from github to gendergf
 genderdf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/genderinfocondensed.csv")
 # cut dataframe to include only 6 variables
 gendertrial <- subset(genderdf, genderdf$category %in% c("total_fertility_rate", "womens_share_of_labour_force", "womens_share_of_tertiary_enrolment", "labour_force_participation_rate", "singulate_mean_age_at_marriage", "contraceptive_prevalence_rate_any_method"))
 ```
-
 ```{r, warning = F, message = F}
 # clean new dataframe
 gendertrial$year <- substr(gendertrial$year, 0, 4)
@@ -92,7 +87,6 @@ gendertrial <- gendertrial[gendertrial$value != "…", ]
 gendertrial <- gendertrial[order(gendertrial[,3], decreasing = TRUE), ]
 gendertrial <- gendertrial[!duplicated(gendertrial[c("country_or_area", "category", "subgroup")]),]
 ```
-
 ```{r, warning = F, message = F}
 # make each variable subset & split by gender when necesary
 tfr_df <- subset(gendertrial, gendertrial$category == 'total_fertility_rate', select = c('country_or_area', 'value')) 
@@ -112,14 +106,11 @@ colnames(age_mar_m_df)[2] <- "age_marriage_m"
 contprev_df <- subset(gendertrial, gendertrial$category == 'contraceptive_prevalence_rate_any_method', select = c('country_or_area', 'value'))
 colnames(contprev_df)[2] <- "cont_prev_rate"
 ```
-
-
 ```{r, warning = F, message = F}
 # all subsets merged 
 allmerge0 = merge(lfp_f_df, merge(lfp_m_df, merge(age_mar_f_df, merge(age_mar_m_df, merge(contprev_df, merge(wste_df, merge(wslf_df, tfr_df, by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T), by = c("country_or_area"), all = T)
 completemerge0 <- allmerge0[complete.cases(allmerge0),]
 ```
-
 ```{r, warning = F, message = F}
 # read csv file from github to scraped data
 scrapeddf <- readr::read_csv("https://raw.github.com/ava-chae/genderinfo/main/*UPDATED_scrapedmerge.csv")
@@ -127,144 +118,154 @@ colnames(scrapeddf)[1] = "country_or_area"
 # merge scraped data with gender data
 finalmerge <- merge(completemerge0, scrapeddf, by = c("country_or_area"), all = T)
 gender_info <- finalmerge[complete.cases(finalmerge),]
+colnames(gender_info)[12] = "gov"
 # make as numeric
 gender_info <- gender_info %>% mutate_at(c('lfp_rate_f', 'lfp_rate_m', 'age_marriage_m', 'age_marriage_f', 'cont_prev_rate', 'w_tert_enroll', 'w_labor_force', 'fertility_rate'), as.numeric)
 ```
-*The final cleaned and merged dataset used 14 continuous variables and 3 categorical variables. Gender-specific data was collected from Kaggle (https://www.kaggle.com/datasets/unitednations/gender-info-2007) and additional data was scraped from various websites.*
+*The final cleaned and merged dataset used 14 continuous variables and 3 categorical variables with gender-specific data collected from Kaggle and additional data scraped.*
 
-*The original Kaggle gender information data was first condensed by removing irrelevant columns to be able to upload to GitHub. The condensed datafile is loaded then cut to include only 6 variables that we wanted to analyze. The values of year sometimes had multiple years, so for simplicity, we only kept the first year in each row.  Irrelevant columns were removed, and only complete rows were kept. Next, because some countries had several years worth of data for certain variables, we only kept the most recent data values for duplicate rows. The major cleaning aspect was splitting and merging the dataset. The dataset did not have each variable as a separate column and instead just named all the variables in one column, we had to separate the rows to make analysis much easier. Each variable was split and merged together to form a dataframe in which each variable was given a separate column. Only complete cases were kept in the final data. Finally, the additional web scraped data was pulled from GitHub and merged with the cleaned Kaggle data to form the finalmerge.csv file for analysis. The main issues we encountered was finding that data for most variables only existed for certain countries as well as separating variables into different columns without taking too many lines of code.*
+*We condensed Kaggle data by removing irrelevant columns and uploading to GitHub. The condensed datafile is loaded then cut to include only 6 variables that we wanted to analyze. Only complete rows were kept. Next, because some countries had several years worth of data for certain variables, we only kept the most recent data values for duplicate rows. The major cleaning aspect was splitting and merging the dataset. The dataset did not have each variable as a separate column and instead just named all the variables in one column, we had to separate the rows to make analysis much easier. Each variable was split and merged together to form a dataframe in which each variable was given a separate column. Only complete cases were kept in the final data. Finally, the additional web scraped data was pulled from GitHub and merged with the cleaned Kaggle data to form the finalmerge.csv file for analysis. The main issues were finding that data for most variables only existed for certain countries as well as separating variables into different columns without taking too many lines of code.*
 
-* Labor force participation rate (lfp_rate_m & f): continuous as a percent
-* Mean age at marriage (age_marriage_m & f): continuous in years
-* Contraceptive prevalence rate (cont_prev_rate): continuous as percent
-* Women's share of tertiary enrollment (w_tert_enroll): continuous as percent
-* Women's share of labor force (w_labor_force): continuous as percent
-* Total fertility rate per woman (fertility_rate): continuous as number of average births per woman
-* GDP per capita (in 2007): continuous average GDP per person
-* Percent women in parliament: continuous as percent of 100
-* Male to female income ratio: continuous average male to female income ratio
-* GNI per capita (male and female): continuous average GNI per person
-* Type of government: categorical classification of national government type
+*	(lfp_rate_m & f) Labor force participation rate: continuous as a percent
+*	(age_marriage_m & f) Mean age at marriage: continuous in years
+*	(cont_prev_rate) Contraceptive prevalence rate: continuous as percent
+*	(w_tert_enroll) Women’s share of tertiary enrollment: continuous as percent
+*	(w_labor_force) Women’s share of labor force: continuous as percent
+*	(fertility_rate) Fertility Rate: continuous as number of average births per woman
+*	(gdp_per_capita) GDP per capita: continuous average GDP per person in 2007
+*	(percent_women_in_parliament): continuous as percent 
+*	(male_to_female_income_ratio): continuous average male to female income ratio
+*	(male & female_GNI_per_capita)GNI per capita: continuous average GNI per person
+*	(gov) Type of government: categorical classification of national government type
 
 #### Correlation Test 
 ```{r}
-class(gender_info$cont_prev_rate)
 (cor1test <- cor.test(gender_info$cont_prev_rate, gender_info$fertility_rate))
-plot(gender_info$cont_prev_rate, gender_info$fertility_rate, pch = 19, col = "skyblue", xlab = "Contraceptive Prevalence Rate", ylab = "Total Fertility Rate (per woman)")
-mtext("Contraceptive Prevalence Rate vs Total Fertility Rate", cex = 1.2, line = 1)
+plot(gender_info$cont_prev_rate, gender_info$fertility_rate, pch = 19, col = "#8FA1F7", xlab = "Contraceptive Prevalence Rate", ylab = "Total Fertility Rate (per woman)")
+mtext("Contraceptive Prevalence Rate vs Total Fertility Rate", cex = 1, line = 1)
 ```
 *The p-value of < 2.2e-16 is extremely small (certainly less than 0.05), so we conclude that the correlation is statistically significantly different from zero. The confidence interval for the true correlation is (-0.82, -0.92) which is well away from zero.*
 
 #### T-test & T-test Bootstrap
-(Show ability to create bootstrap confidence interval for either a t-test or a correlation. For full marks, should include histogram with both regular and bootstrapped CI shown, as well as a short sentence description of results. Plots should be clearly labeled, well formatted, and display an aesthetic sense.)
 ```{r}
 t.test(gender_info$percent_women_in_parliament, mu = 0.5)
-boxplot(gender_info$percent_women_in_parliament, horizontal = T, col = "royalblue", xlab = "Percentage", main = "Percentage of Women in Parliament", lwd = 2)
-(parm_ci <- t.test(gender_info$percent_women_in_parliament, mu = 0.5)$conf.int) 
+boxplot(gender_info$percent_women_in_parliament, horizontal = T, col = "#6F189E", xlab = "Percentage", main = "Percentage of Women in Parliament", lwd = 2)
+parm_ci <- t.test(gender_info$percent_women_in_parliament, mu = 0.5)$conf.int
 N <- nrow(gender_info)
 n_samp <- 10000
 WomenParli <- rep(NA, n_samp)
 for (i in 1:n_samp){
-sample_wparli <- sample(gender_info$percent_women_in_parliament, length(gender_info$percent_women_in_parliamen), replace = TRUE)  
+sample_wparli <- sample(gender_info$percent_women_in_parliament, length(gender_info$percent_women_in_parliament), replace = TRUE)  
 WomenParli[i] <- mean(sample_wparli)
 }
-(boot_ci <- quantile(WomenParli, c(0.025, 0.975)))
-hist(gender_info$percent_women_in_parliament, main = "Percent of Women in Parliament", xlab = "Percent", col = "royalblue", cex.main = 0.8, breaks = 50)
-abline(v = boot_ci,col = "palevioletred",lwd = 3)
-abline(v = parm_ci, col = "slategray2", lwd = 3, lty = 2)
-legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("brown2","purple2"), lty = c(2, 1))
-hist(WomenParli, main = "Mean Percent Return Percent of Women in Parliament", xlab = "Percent", col = "royalblue", cex.main = 0.8, breaks = 50)
-abline(v = boot_ci,col = "palevioletred",lwd = 3)
-abline(v = parm_ci, col = "slategray2", lwd = 3, lty = 2)
-legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("slategray2","palevioletred"), lty = c(2, 1))
+boot_ci <- quantile(WomenParli, c(0.025, 0.975))
+hist(gender_info$percent_women_in_parliament, main = "Percent of Women in Parliament", xlab = "Percent", col = "#6F189E", cex.main = 0.8, breaks = 50)
+abline(v = boot_ci,col = "#8FA1F7",lwd = 3)
+abline(v = parm_ci, col = "#DBCA72", lwd = 3, lty = 2)
+legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("#DBCA72","#8FA1F7"), lty = c(2, 1))
+hist(WomenParli, main = "Mean Percent Return Percent of Women in Parliament", xlab = "Percent", col = "#6F189E", cex.main = 0.8, breaks = 50)
+abline(v = boot_ci,col = "#8FA1F7",lwd = 3)
+abline(v = parm_ci, col = "#DBCA72", lwd = 3, lty = 2)
+legend("topleft", c("Parametric CI", "Bootstrapped CI"), lwd = 3, col = c("#DBCA72","#8FA1F7"), lty = c(2, 1))
 ```
 *Given that the p-value is less than 2.2e-16, we can reject the null hypothesis. We reject the null hypothesis that the true mean of women’s share of tertiary education is equal to 50%.*
 *The boot CI is a bit narrower than the parametric CI; however, the difference is quite small.*
 
 #### Permutation Test 
-(Include at least one. For full marks, should include histogram with results, line for actual statistic value, p-value of permutation, and short sentence description of results)
 ```{r}
 permCor(gender_info$lfp_rate_m, gender_info$lfp_rate_f)
 permCor(gender_info$lfp_rate_m,gender_info$lfp_rate_f, plotit = F)
+```
+*The permuted sample correlations for labor force participation rate for males and females has a p-value of 0.0176 so we reject the null hypothesis and they are different between gender groups.*
+```{r}
 par.cex = 0.6
 permCor(gender_info$male_GNI_per_capita, gender_info$female_GNI_per_capita) 
 permCor(gender_info$male_GNI_per_capita, gender_info$female_GNI_per_capita, plotit = F)
 ```
-*The permuted sample correlations for labor force participation rate for males and females has a p-value of 0.0176. This suggests that we reject the null hypothesis. At a significance level of 0.05, we conclude that the labor force participation rate for men and women are different between gender groups.The permuted sample correlations for GNI per capita between men and women has a p-value of 0. We reject the null hypothesis as the observed data is extremely unlikely to have occurred by chance alone. Therefore, the men and women GNI per capita difference is highly based off the difference in gender.* 
+*The permuted sample correlations for GNI per capita between men and women has a p-value of 0. We reject the null hypothesis as the observed data is extremely unlikely to have occurred by chance alone. Therefore, the men and women GNI per capita difference is highly based off the difference in gender.* 
 
 #### Multiple Regression
-(Few sentence intro to plan for multiple regression, variables used, process, etc. Use either backwards stepwise regression or some form of best subsets regression. Should include residual plots. A GLM with a mix of continuous and categorical predictors is fine here.)
-*Insert plan*
+
+*The goal is to fit a model predicting the GDP per capita in 2007 in a country based on the variables of labor force participation rate m/f, age at marriage m/f, contraceptive prevalence rate, tertiary enrollment for women, fertility rate, women in parliament, and m/f income ratio. First, we must check to see if the GDP data is approximately normal, and if not, take transformations. We will make a separate data set with these variables and fit the model.*
 (Normal Quantile Plot of residuals, plot of fits vs. residuals, discussion. Plots should be clearly labeled, well formatted, and display an aesthetic sense.)
 ```{r}
-hist(gender_info$gdp_per_capita, col = "palevioletred", main = "GDP Per Capita")
 qqPlot(gender_info$gdp_per_capita, main = "QQ Plot GDP Per Capita", pch = 19)
 
-#lambda = 0 means log transformation
 gender_info3 <- na.omit(gender_info[ , c("gdp_per_capita", "lfp_rate_f", "lfp_rate_m", "age_marriage_f", "age_marriage_m", "cont_prev_rate", "w_tert_enroll", "fertility_rate", "percent_women_in_parliament", "male_to_female_income_ratio")])
 linear_m <- lm(gdp_per_capita ~ ., data = gender_info3)
 trans1 <- boxCox(linear_m)
 trans1$x[which.max(trans1$y)]
 
-#Make variable on log scale for more normal data
+#Transform variable to natural log scale since lambda is close to 0
 gender_info$logGDP <- log(gender_info$gdp_per_capita)
-hist(gender_info$logGDP, col = "slateblue", main = "Log GDP Per Capita")
+hist(gender_info$logGDP, col = "#8D7FD4", main = "Log GDP Per Capita")
 qqPlot(gender_info$logGDP, main = "QQ Plot Log GDP Per Capita", pch = 19)
 
 gender_info2 <- na.omit(gender_info[ , c("logGDP", "lfp_rate_f", "lfp_rate_m", "age_marriage_f", "age_marriage_m", "cont_prev_rate", "w_tert_enroll", "fertility_rate", "percent_women_in_parliament", "male_to_female_income_ratio")])
 rownames(gender_info2) <- gender_info[, 1]
 
 suppressWarnings(pairsJDRS(gender_info2))
-#issues of multi-collinearity as the predictors are correlated with eachother
-#variables will be 'competing' with eachother to explain the variability in log of GDP
-
-
+```
+*According to this, there will be issues of multi-collinearity as the predictors are correlated with each other and variables will “compete” to explain variability. Since there is collinearity, we decided to use backwards stepwise rather than forwards to account for this.*
+```{r}
 #Backwards Stepwise Regression
 lm1 <- lm(logGDP ~ ., data = gender_info2)
 summary(lm1)
 lm2 <- lm(logGDP ~ lfp_rate_f +  age_marriage_f + fertility_rate , data = gender_info2)
 summary (lm2)
-
+```
+*The p-value of the model before and after backwards stepwise regression are both 2.2e-16, which means that both have statistically significant predictive power. For the process of removing predictors one by one, we removed in order: mean age at marriage male, contraceptive prevalence rate, labor force participation rate male, percent women in parliament, male to female income ratio, and women tertiary enrollment percent. The adjusted R-squared of 0.7123 shows that approximately 71.23% of the variability in the log(GDP) per capita in 2007 is explained by the predictors in the final model. The final model contains three predictors: labor force rate for females, age of marriage for females, and fertility rate. The negative parameter direction of labor force participation for females as well as the fertility rate means as those decrease, we can predict an increase in log(GDP) per capita in 2007. Likewise, the positive parameter direction of mean age at marriage for females means that as that increases, we can predict an increase in log(GDP per capita in 2007.*
+```{r}
 #NQ Plot and Fits vs. Residual Plot
+par(cex.main = 0.75)
 myResPlots2(lm2, "Model for log GDP per capita")
 ```
-*Insert discussion of criteria used to choose final model-- Results of final model displayed. Discussion of R-squared, parameter direction and significance. Discussion of criteria used to choose final model*
-*Insert discussion of results (Transformations, heteroskedasticity, completeness, etc.)*
+*The NQ plot of studentized residuals for the log GDP per capita seems approximately normal and the plot of fits vs. residuals doesn’t indicate any severe outliers. There is no evidence of any highly influential points, heteroskedasticity, or non-linear trends. Overall, this model seems to fit well. To complete this regression model, we had to transform GDP by natural log.*
 
 #### ANOVA
 For ANOVA, should have model, interaction plot if two way, discussion of results, Tukey comparisons, residual plots. 
 ```{r}
+attach(gender_info)
 #boxplot
 par(mar = c(10, 4, 5, 2), cex = .8)
-boxplot(w_tert_enroll ~ type_of_government, data = gender_info, col = 'yellow', main = "Women's Share of Tertiary Enrollment by Government Type", ylab = "Women's Share of Tertiary Enrollment", xlab = "", cex.axis = 0.7, las = 2)
-means <- tapply(gender_info$w_tert_enroll, gender_info$type_of_government, mean)
-points(means, col = "red", pch = 19, cex = 1.2)
-text(x = c(1:6), y = means + 4, labels = round(means,2))
+boxplot(w_tert_enroll ~ gov, col = '#DBCA72', main = "Women's Share of Tertiary Enrollment by Government Type", ylab = "Women's Share of Tertiary Enrollment", xlab = "", cex.axis = 0.7, las = 2)
+means <- tapply(w_tert_enroll, gov, mean)
+points(means, col = "#8FA1F7", pch = 19, cex = 1.2)
+text(x = c(1:6), y = means + 6, labels = round(means,2))
 #ratio of standard deviations
-(sds <- tapply(gender_info$w_tert_enroll, gender_info$type_of_government, sd))
+(sds <- tapply(w_tert_enroll, gov, sd))
 round(max(sds)/min(sds), 1)
-#Fit ANOVA model
-aov1 <- aov(gender_info$w_tert_enroll ~ gender_info$type_of_government)
+#Fit ANOVA model - use the aov function
+aov1 <- aov(w_tert_enroll ~ gov)
 summary(aov1)
-mod1 <- lm(gender_info$w_tert_enroll ~ gender_info$type_of_government -1)
+#same thing using lm() - basically regression with indicator variables.
+mod1 <- lm(w_tert_enroll ~ gov -1)
 summary(mod1)
-#plot
-CIs <- round(confint(mod1), 2)
+CIs <- confint(mod1)
+round(CIs, 2)
 coefs <- coef(mod1)
-par(cex.main = 0.7, cex.lab = 0.8, mar = c(4, 12, 5, 2))
-plotCI(coefs, 1:(length(coefs)), ui = CIs[,2], li = CIs[,1], axes = FALSE, err = "x", ylab = "", xlab = "Mean (and 95% CI)", main = "Mean and CI's for Women's Share of Tertiary Enrollment by Government Type", lwd = 2, col = "blue")
+#plot
+par(cex.main = 0.65, cex.lab = 0.7, mar = c(4, 12, 5, 2))
+plotCI(coefs, 1:(length(coefs)), ui = CIs[,2], li = CIs[,1], axes = FALSE, err = "x", ylab = "", xlab = "Mean (and 95% CI)", main = "Mean and CI's for Women's Share of Tertiary Enrollment by Government Type", lwd = 2, col = "#6F189E")
 axis(side = 1)
-axis(side = 2, at = 1:(length(coefs)), label = levels(as.factor(gender_info$type_of_government)), las = 2)
+axis(side = 2, at = 1:(length(coefs)), label = levels(as.factor(gov)), las = 2)
+```
+```{r, eval = FALSE}
 #Tukey
 TukeyHSD(aov1)
-par(cex.main = 0.75, cex.axis = 0.5)
-plot(TukeyHSD(aov1), las = 1)
-#check assumptions
-par(cex.main = 0.75, cex.lab = 1, mar = c(4, 5, 5, 2))
-myResPlots2(aov1, label = "Women's Share of Tertiary Enrollment by Government Type")
-bartlett.test(gender_info$w_tert_enroll, gender_info$type_of_government)
 ```
-*In the boxplot the five-point-summary of fatality varies greatly by government type, indicating a possible difference in means (in particular, civilian and military dictatorships have a much smaller women's share of tertiary enrollment). It is reasonable to assume that the variances are the same across groups because the ratio of largest to smallest sample standard deviations is 1.7, which is less than 2. The mean share of tertiary enrollment is statistically significantly different between government types because the p-value of 0.000147 is less than alpha at 0.05, so we can reject the null hypothesis that there is no difference in mean women's share of tertiary education by government type. Except for in comparison to Royal Dictatorships, any pair of government type with Military Dictatorships had a statistically significant difference in mean women's share of tertiary enrollment, as the p-values were all less than alpha at 0.05. Finally, the residuals appear to be normally distributed as most fall within the 95% confidence interval of the normal quantile plot. Furthermore, the residuals all fall within the 95% confidence interval in the fits vs. residuals plot, and our tests of equal variance do not show a statistically significant difference in standard deviations across groups, as the p-values are greater than alpha at 0.05. Therefore, we meet ANOVA's assumptions that residuals are normally distributed within each group and that variability within groups is relatively constant across groups.*
+```{r}
+TukeyHSD(aov1)
+par(cex.main = 0.7, cex.axis = 0.5, mar = c(4, 12, 5, 4))
+plot(TukeyHSD(aov1), las = 1, col = "#10289E")
+#check assumptions
+par(cex.main = 0.7, cex.lab = 1, mar = c(4, 5, 5, 5))
+myResPlots2(aov1, label = "Women's Share of Tertiary Enrollment by Gov Type")
+bartlett.test(w_tert_enroll, gov)
+leveneTest(w_tert_enroll, gov)
+```
+*Insert discussion of results*
 
 #### Conclusion
+(Quality of presentation, misc additional work, brevity, understanding of material.)
 *Insert Conclusion - short paragraph*
